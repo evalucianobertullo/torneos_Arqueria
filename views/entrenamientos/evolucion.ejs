@@ -1,0 +1,800 @@
+<div class="container mt-4 mb-5">
+  <div class="row">
+    <div class="col-12 mb-4">
+      <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <h1 class="h2">
+          <i class="fas fa-chart-line me-2"></i> Mi Evolución en Entrenamientos
+        </h1>
+        <a href="/entrenamientos/crear" class="btn btn-primary">
+          <i class="fas fa-plus-circle me-2"></i> Nuevo Entrenamiento
+        </a>
+      </div>
+      <hr>
+      
+      <!-- Mensajes de alerta solo cuando sean necesarios -->
+      <% if (mensajeExito && typeof mensajeExito === 'string' && mensajeExito !== '') { %>
+        <div class="alert alert-success">
+          <i class="fas fa-check-circle me-2"></i> <%= mensajeExito %>
+        </div>
+      <% } %>
+      
+      <% if (mensajeError && typeof mensajeError === 'string' && mensajeError !== '') { %>
+        <div class="alert alert-danger">
+          <i class="fas fa-exclamation-circle me-2"></i> <%= mensajeError %>
+        </div>
+      <% } %>
+    </div>
+    
+    <% if (!hayEstadisticas) { %>
+      <div class="col-12">
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i> No tienes entrenamientos finalizados para mostrar estadísticas de evolución.
+          Para ver tu evolución, completa al menos un entrenamiento.
+        </div>
+        <% if (stats.totalEntrenamientos > 0) { %>
+          <div class="card shadow mt-4">
+            <div class="card-header bg-primary text-white">
+              <h3 class="h5 mb-0"><i class="fas fa-dumbbell me-2"></i> Entrenamientos en Curso</h3>
+            </div>
+            <div class="card-body">
+              <p>Tienes <strong><%= stats.totalEntrenamientos %></strong> entrenamientos activos.</p>
+              <p>Para ver estadísticas detalladas, finaliza tus entrenamientos cuando termines todas las rondas.</p>
+            </div>
+          </div>
+        <% } else { %>
+          <div class="text-center mt-4">
+            <a href="/entrenamientos/crear" class="btn btn-primary btn-lg">
+              <i class="fas fa-plus-circle me-2"></i> Crear mi primer entrenamiento
+            </a>
+          </div>
+        <% } %>
+      </div>
+    <% } else { %>
+      <!-- Métricas generales -->
+      <div class="col-md-4 mb-4">
+        <div class="card shadow">
+          <div class="card-header bg-primary text-white">
+            <h3 class="h5 mb-0"><i class="fas fa-chart-bar me-2"></i> Resumen General</h3>
+          </div>
+          <div class="card-body">
+            <div class="row text-center">
+              <div class="col-6 mb-3">
+                <div class="p-2 border rounded bg-light">
+                  <div class="small text-muted">Entrenamientos</div>
+                  <div class="h3 mb-0 text-primary"><%= stats.totalEntrenamientos %></div>
+                </div>
+              </div>
+              <div class="col-6 mb-3">
+                <div class="p-2 border rounded bg-light">
+                  <div class="small text-muted">Total Flechas</div>
+                  <div class="h3 mb-0 text-info"><%= stats.totalFlechas %></div>
+                </div>
+              </div>
+              <div class="col-6 mb-3">
+                <div class="p-2 border rounded bg-light">
+                  <div class="small text-muted">Prom. Flecha</div>
+                  <div class="h3 mb-0 text-success"><%= stats.promedioPorFlecha %></div>
+                </div>
+              </div>
+              <div class="col-6 mb-3">
+                <div class="p-2 border rounded bg-light">
+                  <div class="small text-muted">Mejor Prom.</div>
+                  <div class="h3 mb-0 text-warning"><%= stats.mejorPromedio %></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="card bg-light mt-3 mb-3">
+              <div class="card-body p-3">
+                <h6 class="card-title">
+                  <i class="fas fa-trophy text-warning me-2"></i> Progreso
+                </h6>
+                <% if (stats.porcentajeMejora > 0) { %>
+                  <div class="alert alert-success mb-0">
+                    <i class="fas fa-arrow-up me-2"></i>
+                    <strong>¡Has mejorado un <%= stats.porcentajeMejora.toFixed(1) %>%!</strong> 
+                    desde tu primer entrenamiento.
+                  </div>
+                <% } else if (stats.porcentajeMejora < 0) { %>
+                  <div class="alert alert-warning mb-0">
+                    <i class="fas fa-arrow-down me-2"></i>
+                    <strong>Has disminuido un <%= Math.abs(stats.porcentajeMejora).toFixed(1) %>%</strong> 
+                    desde tu primer entrenamiento.
+                  </div>
+                <% } else { %>
+                  <div class="alert alert-info mb-0">
+                    <i class="fas fa-equals me-2"></i>
+                    <strong>Mantienes un rendimiento estable</strong> 
+                    desde tu primer entrenamiento.
+                  </div>
+                <% } %>
+              </div>
+            </div>
+            
+            <!-- Fechas de primer y último entrenamiento -->
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <div class="p-2 border rounded bg-light text-center">
+                  <div class="small text-muted">Primer Entrenamiento</div>
+                  <small><%= formatearFecha(stats.primerEntrenamiento.fecha) %></small>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-2 border rounded bg-light text-center">
+                  <div class="small text-muted">Último Entrenamiento</div>
+                  <small><%= formatearFecha(stats.ultimoEntrenamiento.fecha) %></small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Rendimiento por distancia -->
+        <div class="card shadow mt-3">
+          <div class="card-header bg-info text-white">
+            <h3 class="h5 mb-0"><i class="fas fa-ruler-horizontal me-2"></i> Por Distancia</h3>
+          </div>
+          <div class="card-body p-2">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>Distancia</th>
+                    <th class="text-center">Entrenamientos</th>
+                    <th class="text-center">Promedio</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% Object.keys(stats.distribucionPorDistancia).sort().forEach(distancia => { %>
+                    <% const datos = stats.distribucionPorDistancia[distancia]; %>
+                    <tr>
+                      <td><strong><%= distancia %></strong></td>
+                      <td class="text-center">
+                        <%= datos.entrenamientos %>
+                      </td>
+                      <td class="text-center">
+                        <span class="badge 
+                          <%= datos.promedio >= 8 ? 'bg-success' : 
+                             datos.promedio >= 6 ? 'bg-info' : 
+                             datos.promedio >= 4 ? 'bg-warning' : 'bg-danger' %>">
+                          <%= datos.promedio %>
+                        </span>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Gráficos de evolución -->
+      <div class="col-md-8 mb-4">
+        <div class="card shadow">
+          <div class="card-header bg-primary text-white">
+            <h3 class="h5 mb-0"><i class="fas fa-chart-line me-2"></i> Evolución Temporal</h3>
+          </div>
+          <div class="card-body">
+            <!-- Pestañas para diferentes gráficos -->
+            <ul class="nav nav-tabs" id="evolTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="evolucion-tab" data-bs-toggle="tab" 
+                        data-bs-target="#evolucion" type="button" role="tab" 
+                        aria-controls="evolucion" aria-selected="true">
+                  Evolución General
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="distancia-tab" data-bs-toggle="tab" 
+                        data-bs-target="#distancia" type="button" role="tab" 
+                        aria-controls="distancia" aria-selected="false">
+                  Por Distancia
+                </button>
+              </li>
+            </ul>
+            
+            <div class="tab-content pt-3" id="evolTabsContent">
+              <!-- TAB: Evolución general -->
+              <div class="tab-pane fade show active" id="evolucion" role="tabpanel" aria-labelledby="evolucion-tab">
+                <!-- Tarjetas de resumen -->
+                <div class="row g-3 mb-4">
+                  <div class="col-md-6">
+                    <div class="card bg-light h-100">
+                      <div class="card-body">
+                        <h6 class="card-title text-primary">
+                          <i class="fas fa-chart-line me-2"></i> Tendencia General
+                        </h6>
+                        <div class="d-flex align-items-center mb-2">
+                          <% if (stats.tendenciaGeneral > 0) { %>
+                            <div class="rounded-circle bg-success d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px;">
+                              <i class="fas fa-arrow-up text-white"></i>
+                            </div>
+                            <div>
+                              <h4 class="mb-0 text-success"><%= Math.abs(stats.tendenciaGeneral).toFixed(2) %></h4>
+                              <small class="text-muted">puntos por sesión</small>
+                            </div>
+                          <% } else if (stats.tendenciaGeneral < 0) { %>
+                            <div class="rounded-circle bg-warning d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px;">
+                              <i class="fas fa-arrow-down text-white"></i>
+                            </div>
+                            <div>
+                              <h4 class="mb-0 text-warning"><%= Math.abs(stats.tendenciaGeneral).toFixed(2) %></h4>
+                              <small class="text-muted">puntos por sesión</small>
+                            </div>
+                          <% } else { %>
+                            <div class="rounded-circle bg-info d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px;">
+                              <i class="fas fa-equals text-white"></i>
+                            </div>
+                            <div>
+                              <h4 class="mb-0 text-info">0.00</h4>
+                              <small class="text-muted">sin cambios</small>
+                            </div>
+                          <% } %>
+                        </div>
+                        <small class="text-muted">
+                          <%= stats.tendenciaGeneral > 0 ? 'Tu rendimiento está mejorando con cada sesión' : 
+                             stats.tendenciaGeneral < 0 ? 'Tu rendimiento está disminuyendo con cada sesión' : 
+                             'Tu rendimiento se mantiene estable' %>
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="card bg-light h-100">
+                      <div class="card-body">
+                        <h6 class="card-title text-primary">
+                          <i class="fas fa-bullseye me-2"></i> Consistencia
+                        </h6>
+                        <% 
+                          let consistenciaColor = '';
+                          let consistenciaTexto = '';
+                          let consistenciaIcono = '';
+                          
+                          if (stats.consistencia <= 1) {
+                            consistenciaColor = 'success';
+                            consistenciaTexto = 'Excelente consistencia';
+                            consistenciaIcono = 'fa-medal';
+                          } else if (stats.consistencia <= 2) {
+                            consistenciaColor = 'info';
+                            consistenciaTexto = 'Buena consistencia';
+                            consistenciaIcono = 'fa-thumbs-up';
+                          } else if (stats.consistencia <= 3) {
+                            consistenciaColor = 'warning';
+                            consistenciaTexto = 'Consistencia regular';
+                            consistenciaIcono = 'fa-balance-scale';
+                          } else {
+                            consistenciaColor = 'danger';
+                            consistenciaTexto = 'Alta variabilidad';
+                            consistenciaIcono = 'fa-random';
+                          }
+                        %>
+                        <div class="d-flex align-items-center mb-2">
+                          <div class="rounded-circle bg-<%= consistenciaColor %> d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px;">
+                            <i class="fas <%= consistenciaIcono %> text-white"></i>
+                          </div>
+                          <div>
+                            <h4 class="mb-0 text-<%= consistenciaColor %>"><%= stats.consistencia.toFixed(2) %></h4>
+                            <small class="text-muted">desviación estándar</small>
+                          </div>
+                        </div>
+                        <small class="text-muted">
+                          <%= consistenciaTexto %>. <%= stats.consistencia <= 2 ? 'Mantienes un nivel de rendimiento estable' : 'Trabajar en mantener resultados más constantes' %>.
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Gráfico principal -->
+                <div style="height: 300px">
+                  <canvas id="evolucionChart"></canvas>
+                </div>
+                
+                <div class="text-center small text-muted mt-2">
+                  Evolución de tu promedio por flecha a lo largo del tiempo
+                </div>
+
+                <!-- Información adicional -->
+                <div class="row g-3 mt-3">
+                  <div class="col-md-6">
+                    <div class="card">
+                      <div class="card-header bg-success text-white">
+                        <h6 class="mb-0">
+                          <i class="fas fa-trophy me-2"></i> Mejor Sesión
+                        </h6>
+                      </div>
+                      <div class="card-body">
+                        <% if (stats.mejorSesion) { %>
+                          <p class="mb-1">
+                            <strong>Fecha:</strong> <%= formatearFecha(stats.mejorSesion.fecha) %>
+                          </p>
+                          <p class="mb-1">
+                            <strong>Promedio:</strong> 
+                            <span class="badge bg-success"><%= stats.mejorSesion.promedio %></span>
+                          </p>
+                          <p class="mb-1">
+                            <strong>Distancia:</strong> <%= stats.mejorSesion.distancia %>
+                          </p>
+                          <p class="mb-0">
+                            <strong>Total:</strong> <%= stats.mejorSesion.totalPuntos %> puntos 
+                            (<%= stats.mejorSesion.totalFlechas %> flechas)
+                          </p>
+                        <% } else { %>
+                          <p class="mb-0">No hay datos disponibles</p>
+                        <% } %>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="card">
+                      <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">
+                          <i class="fas fa-chart-bar me-2"></i> Últimas 3 Sesiones
+                        </h6>
+                      </div>
+                      <div class="card-body">
+                        <% if (stats.promedioUltimos3) { %>
+                          <p class="mb-1">
+                            <strong>Promedio:</strong> 
+                            <span class="badge bg-info"><%= stats.promedioUltimos3 %></span>
+                          </p>
+                          <% if (stats.comparacionConPromedio !== 0) { %>
+                            <div class="alert <%= stats.comparacionConPromedio > 0 ? 'alert-success' : 'alert-warning' %> mb-0">
+                              <i class="fas <%= stats.comparacionConPromedio > 0 ? 'fa-arrow-up' : 'fa-arrow-down' %> me-2"></i>
+                              <%= Math.abs(stats.comparacionConPromedio).toFixed(2) %> puntos 
+                              <%= stats.comparacionConPromedio > 0 ? 'por encima' : 'por debajo' %> 
+                              del promedio general
+                            </div>
+                          <% } else { %>
+                            <div class="alert alert-info mb-0">
+                              Igual al promedio general
+                            </div>
+                          <% } %>
+                        <% } else { %>
+                          <p class="mb-0">Necesitas al menos 3 sesiones</p>
+                        <% } %>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="alert alert-info mt-3">
+                  <i class="fas fa-info-circle me-2"></i>
+                  Este gráfico muestra cómo ha evolucionado tu promedio por flecha en cada entrenamiento a lo largo del tiempo.
+                  <% if (stats.evolucionPromedio.length > 1) { %>
+                    <% 
+                      const primerPromedio = stats.evolucionPromedio[0].promedio;
+                      const ultimoPromedio = stats.evolucionPromedio[stats.evolucionPromedio.length - 1].promedio;
+                      const diferencia = ultimoPromedio - primerPromedio;
+                    %>
+                    <br><br>
+                    <% if (diferencia > 0) { %>
+                      <strong class="text-success">Has mejorado <%= diferencia.toFixed(2) %> puntos</strong> desde tu primer entrenamiento.
+                    <% } else if (diferencia < 0) { %>
+                      <strong class="text-warning">Has disminuido <%= Math.abs(diferencia).toFixed(2) %> puntos</strong> desde tu primer entrenamiento.
+                    <% } else { %>
+                      <strong class="text-info">Tu rendimiento se mantiene estable</strong> desde tu primer entrenamiento.
+                    <% } %>
+                  <% } %>
+                </div>
+              </div>
+              
+              <!-- TAB: Evolución por distancia -->
+              <div class="tab-pane fade" id="distancia" role="tabpanel" aria-labelledby="distancia-tab">
+                <div style="height: 300px">
+                  <canvas id="distanciaChart"></canvas>
+                </div>
+                
+                <div class="text-center small text-muted mt-2">
+                  Evolución de tu promedio por flecha según la distancia
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                  <i class="fas fa-info-circle me-2"></i>
+                  Este gráfico compara tu rendimiento en diferentes distancias a lo largo del tiempo.
+                  <% 
+                    // Encontrar la distancia con mejor promedio
+                    let mejorDistancia = '';
+                    let mejorPromedio = 0;
+                    
+                    Object.keys(stats.distribucionPorDistancia).forEach(dist => {
+                      if (stats.distribucionPorDistancia[dist].promedio > mejorPromedio) {
+                        mejorPromedio = stats.distribucionPorDistancia[dist].promedio;
+                        mejorDistancia = dist;
+                      }
+                    });
+                    
+                    if (mejorDistancia) {
+                  %>
+                    <br><br>
+                    <strong>Tu mejor rendimiento es en la distancia <%= mejorDistancia %></strong> con un promedio de <%= mejorPromedio %> puntos por flecha.
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Lista de entrenamientos recientes -->
+        <div class="card shadow mt-3">
+          <div class="card-header bg-success text-white">
+            <h3 class="h5 mb-0"><i class="fas fa-history me-2"></i> Entrenamientos Recientes</h3>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Fecha</th>
+                    <th>Distancia</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% entrenamientos.slice(0, 5).forEach(entrenamiento => { %>
+                    <tr>
+                      <td>
+                        <a href="/entrenamientos/<%= entrenamiento._id %>" class="text-decoration-none">
+                          <%= entrenamiento.nombre %>
+                        </a>
+                      </td>
+                      <td><small><%= formatearFecha(entrenamiento.fecha) %></small></td>
+                      <td><%= entrenamiento.distancia %></td>
+                      <td>
+                        <span class="badge <%= entrenamiento.estado === 'activo' ? 'bg-success' : 'bg-secondary' %>">
+                          <%= entrenamiento.estado === 'activo' ? 'Activo' : 'Finalizado' %>
+                        </span>
+                      </td>
+                      <td>
+                        <div class="btn-group btn-group-sm">
+                          <a href="/entrenamientos/<%= entrenamiento._id %>" class="btn btn-outline-primary">
+                            <i class="fas fa-eye"></i>
+                          </a>
+                          <% if (entrenamiento.estado === 'activo') { %>
+                            <a href="/entrenamientos/<%= entrenamiento._id %>/tiradas" class="btn btn-outline-success">
+                              <i class="fas fa-edit"></i>
+                            </a>
+                          <% } else { %>
+                            <a href="/entrenamientos/<%= entrenamiento._id %>/estadisticas" class="btn btn-outline-info">
+                              <i class="fas fa-chart-bar"></i>
+                            </a>
+                          <% } %>
+                        </div>
+                      </td>
+                    </tr>
+                  <% }); %>
+                  
+                  <% if (entrenamientos.length > 5) { %>
+                    <tr>
+                      <td colspan="5" class="text-center">
+                        <a href="/entrenamientos" class="btn btn-sm btn-outline-primary">
+                          Ver todos los entrenamientos (<%= entrenamientos.length %>)
+                        </a>
+                      </td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% } %>
+    
+    <!-- Botones de navegación -->
+    <div class="col-12 d-flex justify-content-between">
+      <a href="/entrenamientos" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Volver a Mis Entrenamientos
+      </a>
+      <a href="/dashboard" class="btn btn-outline-primary">
+        <i class="fas fa-home me-2"></i> Dashboard
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="d-sm-none">
+  <a href="/dashboard" class="btn btn-primary mobile-float-btn">
+    <i class="fas fa-home"></i>
+  </a>
+</div>
+
+<!-- Scripts para gráficos -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0/dist/chartjs-adapter-moment.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  <% if (hayEstadisticas) { %>
+    // Remover cualquier comportamiento de auto-cierre de alertas
+    document.querySelectorAll('.alert').forEach(function(alert) {
+      // Eliminar la clase 'fade' y 'show' que podrían causar animaciones
+      alert.classList.remove('fade', 'show');
+      // Asegurarse de que sea visible
+      alert.style.display = 'block';
+    });
+    
+    const stats = <%- JSON.stringify(stats) %>;
+    
+    // Gráfico de Evolución General
+    const evolucionCtx = document.getElementById('evolucionChart');
+    if (evolucionCtx && stats.evolucionPromedio.length > 0) {
+      const datosOrdenados = [...stats.evolucionPromedio].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+      
+      // Calcular el rango de valores para el eje Y
+      const minValue = Math.max(0, Math.min(...datosOrdenados.map(item => item.promedio)) - 1);
+      const maxValue = Math.max(...datosOrdenados.map(item => item.promedio)) + 1;
+      
+      new Chart(evolucionCtx, {
+        type: 'line',
+        data: {
+          labels: datosOrdenados.map(item => new Date(item.fecha)),
+          datasets: [{
+            label: 'Promedio por flecha',
+            data: datosOrdenados.map(item => item.promedio),
+            borderColor: '#0d6efd',
+            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 6,
+            pointHoverRadius: 8
+          }, {
+            label: 'Tendencia',
+            data: datosOrdenados.map((_, index) => {
+              return stats.promedioPorFlecha + (stats.tendenciaGeneral * index);
+            }),
+            borderColor: '#dc3545',
+            borderDash: [5, 5],
+            fill: false,
+            tension: 0,
+            pointRadius: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              type: 'time',
+              time: {
+                unit: 'day',
+                displayFormats: {
+                  day: 'DD/MM/YY'
+                }
+              },
+              grid: {
+                display: false
+              },
+              title: {
+                display: true,
+                text: 'Fecha',
+                font: {
+                  size: 14
+                }
+              }
+            },
+            y: {
+              min: minValue,
+              max: maxValue,
+              grid: {
+                color: 'rgba(0, 0, 0, 0.1)'
+              },
+              title: {
+                display: true,
+                text: 'Promedio',
+                font: {
+                  size: 14
+                }
+              },
+              ticks: {
+                stepSize: 1
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                usePointStyle: true,
+                padding: 20,
+                font: {
+                  size: 12
+                }
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              titleColor: '#000',
+              titleFont: {
+                size: 14,
+                weight: 'bold'
+              },
+              bodyColor: '#666',
+              bodyFont: {
+                size: 13
+              },
+              borderColor: '#ddd',
+              borderWidth: 1,
+              padding: 12,
+              displayColors: true,
+              callbacks: {
+                title: function(context) {
+                  const fecha = new Date(datosOrdenados[context[0].dataIndex].fecha);
+                  return fecha.toLocaleDateString('es-ES', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  });
+                },
+                label: function(context) {
+                  if (context.datasetIndex === 0) {
+                    const item = datosOrdenados[context.dataIndex];
+                    return [
+                      `Promedio: ${item.promedio.toFixed(2)} puntos`,
+                      `Distancia: ${item.distancia}`,
+                      `Total: ${item.totalPuntos} puntos (${item.totalFlechas} flechas)`,
+                      `Tiros 8+: ${item.mejoresTiradas} de ${item.totalFlechas}`
+                    ];
+                  } else {
+                    return `Tendencia: ${context.parsed.y.toFixed(2)} puntos`;
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Gráfico por Distancia
+    const distanciaCtx = document.getElementById('distanciaChart');
+    if (distanciaCtx) {
+      // Preparar datos agrupados por distancia
+      const datasets = [];
+      const colores = [
+        '#0d6efd', // azul
+        '#dc3545', // rojo
+        '#198754', // verde
+        '#fd7e14', // naranja
+        '#6f42c1', // morado
+        '#20c997', // turquesa
+        '#e83e8c'  // rosa
+      ];
+      
+      Object.keys(stats.evolucionPorDistancia).forEach((distancia, index) => {
+        const datos = stats.evolucionPorDistancia[distancia]
+          .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+        
+        datasets.push({
+          label: distancia,
+          data: datos.map(item => ({
+            x: new Date(item.fecha),
+            y: item.promedio
+          })),
+          borderColor: colores[index % colores.length],
+          backgroundColor: 'transparent',
+          tension: 0.4,
+          pointRadius: 5,
+          pointHoverRadius: 7
+        });
+      });
+      
+      new Chart(distanciaCtx, {
+        type: 'line',
+        data: {
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              type: 'time',
+              time: {
+                unit: 'day',
+                displayFormats: {
+                  day: 'DD/MM/YY'
+                }
+              },
+              grid: {
+                display: false
+              },
+              title: {
+                display: true,
+                text: 'Fecha',
+                font: {
+                  size: 14
+                }
+              }
+            },
+            y: {
+              min: Math.max(0, Math.floor(stats.peorPromedio) - 1),
+              grid: {
+                color: 'rgba(0, 0, 0, 0.1)'
+              },
+              title: {
+                display: true,
+                text: 'Promedio',
+                font: {
+                  size: 14
+                }
+              },
+              ticks: {
+                stepSize: 1
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                usePointStyle: true,
+                padding: 20,
+                font: {
+                  size: 12
+                }
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              titleColor: '#000',
+              titleFont: {
+                size: 14,
+                weight: 'bold'
+              },
+              bodyColor: '#666',
+              bodyFont: {
+                size: 13
+              },
+              borderColor: '#ddd',
+              borderWidth: 1,
+              padding: 12,
+              displayColors: true,
+              callbacks: {
+                title: function(context) {
+                  const fecha = new Date(context[0].parsed.x);
+                  return fecha.toLocaleDateString('es-ES', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  });
+                },
+                label: function(context) {
+                  return `${context.dataset.label}: ${context.parsed.y.toFixed(2)} puntos`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+  <% } %>
+});
+</script>
+
+<!-- Estilos específicos para asegurar visibilidad -->
+<style>
+  /* Evitar que las alertas se oculten automáticamente */
+  .static-alert,
+  .tendencia-card,
+  .consistencia-card {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  /* Hacer que los mensajes de éxito/error sean permanentes */
+  .alert:not(.alert-dismissible) {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+</style> 

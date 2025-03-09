@@ -1,0 +1,57 @@
+Fase 6: Creación de entrenamientos
+
+"Añadir una sección 'Mis Entrenamientos' donde el usuario pueda crear su propio entrenamiento con los siguientes datos:
+
+Nombre (por defecto: 'Entrenamiento')
+Fecha (por defecto: la actual)
+Cantidad de flechas por ronda
+Cantidad de rondas
+Distancia (5m, 10m, 18m)"
+Fase 7: Registro de desempeño
+
+"Permitir que el usuario registre el puntaje de cada flecha dentro del entrenamiento, igual que en los torneos, con puntajes de 0 a 10."
+
+✅ Validación para que el entrenamiento no se pueda editar después de finalizar.
+✅ Botón para finalizar el entrenamiento.
+
+Fase 8: Estadísticas de entrenamiento
+
+"Crear una sección dentro de 'Mis Entrenamientos' donde el usuario pueda ver las estadísticas de su entrenamiento:
+
+Puntaje promedio por ronda
+Mejor y peor tirada
+Porcentaje de aciertos (10, 9, 8...)
+Desempeño por distancia"**
+Fase 9: Evolución general
+
+"Añadir una sección de estadísticas generales para mostrar la evolución del usuario en todos sus entrenamientos:
+
+Gráfico de puntaje promedio a lo largo del tiempo
+Total de entrenamientos realizados
+Porcentaje de mejora respecto al primer entrenamiento
+Promedio de puntajes por distancia"**
+
+Fase 10: Desafíos y logros
+
+"Implementar un sistema de desafíos y logros para los entrenamientos. Cada arquero podrá desbloquear logros al completar ciertos hitos."
+
+✅ Ejemplos de logros:
+
+"Primer entrenamiento completado"
+"100 flechas lanzadas"
+"Promedio de 9+ en un entrenamiento"
+"Cinco entrenamientos consecutivos"
+✅ Recompensas virtuales:
+
+Insignias en el perfil
+Niveles de experiencia según entrenamientos realizados
+Fase 11: Feed de actividad
+
+"Añadir un feed de actividad donde se publiquen automáticamente logros y entrenamientos completados."
+
+✅ Ejemplos de publicaciones automáticas:
+
+"Nicolás acaba de completar un entrenamiento con un promedio de 8.5"
+"María desbloqueó el logro '200 flechas lanzadas'."
+"Lucas alcanzó el nivel 5 en arquería."
+✅ Posibilidad de reaccionar y comentar en publicaciones.

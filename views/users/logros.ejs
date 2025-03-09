@@ -1,0 +1,219 @@
+<div class="container mt-4 mb-5">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <h1 class="h2">
+          <i class="fas fa-trophy me-2 text-warning"></i> Mis Logros y Nivel
+        </h1>
+      </div>
+      <hr>
+      
+      <% if (mensajeExito && typeof mensajeExito === 'string' && mensajeExito !== '') { %>
+        <div class="mb-3 text-success">
+          <i class="fas fa-check-circle me-2"></i> <%= mensajeExito %>
+        </div>
+      <% } %>
+      
+      <% if (mensajeError && typeof mensajeError === 'string' && mensajeError !== '') { %>
+        <div class="mb-3 text-danger">
+          <i class="fas fa-exclamation-circle me-2"></i> <%= mensajeError %>
+        </div>
+      <% } %>
+    </div>
+    
+    <!-- Nivel y experiencia -->
+    <div class="col-12 mb-4">
+      <div class="card shadow">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-3 text-center">
+              <div class="position-relative d-inline-block">
+                <div class="rounded-circle bg-primary d-flex justify-content-center align-items-center mx-auto" 
+                     style="width: 120px; height: 120px;">
+                  <span class="display-4 text-white"><%= estadisticas.nivel %></span>
+                </div>
+                <div class="position-absolute bottom-0 end-0">
+                  <div class="rounded-circle bg-success d-flex justify-content-center align-items-center" 
+                       style="width: 40px; height: 40px;">
+                    <i class="fas fa-arrow-up text-white"></i>
+                  </div>
+                </div>
+              </div>
+              <h4 class="mt-3 mb-0">Nivel de Arquero</h4>
+            </div>
+            <div class="col-md-9">
+              <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                  <span>
+                    <strong>Experiencia:</strong> <%= estadisticas.experiencia %> / <%= estadisticas.experiencia_necesaria %>
+                  </span>
+                  <span><%= estadisticas.porcentajeNivel %>%</span>
+                </div>
+                <div class="progress" style="height: 20px;">
+                  <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" 
+                       role="progressbar" 
+                       style="width: <%= estadisticas.porcentajeNivel %>%;" 
+                       aria-valuenow="<%= estadisticas.porcentajeNivel %>" 
+                       aria-valuemin="0" 
+                       aria-valuemax="100"></div>
+                </div>
+              </div>
+              <div class="mt-4">
+                <div class="d-flex justify-content-between mb-1">
+                  <span>
+                    <strong>Logros desbloqueados:</strong> <%= estadisticas.totalDesbloqueados %> / <%= estadisticas.totalLogros %>
+                  </span>
+                  <span><%= estadisticas.porcentajeCompletado %>%</span>
+                </div>
+                <div class="progress" style="height: 20px;">
+                  <div class="progress-bar bg-success" 
+                       role="progressbar" 
+                       style="width: <%= estadisticas.porcentajeCompletado %>%;" 
+                       aria-valuenow="<%= estadisticas.porcentajeCompletado %>" 
+                       aria-valuemin="0" 
+                       aria-valuemax="100"></div>
+                </div>
+              </div>
+              <div class="mt-3 small text-muted">
+                Sube de nivel completando entrenamientos y desbloqueando logros. Cada logro te otorga puntos de experiencia.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Categorías de logros (Pestañas) -->
+    <div class="col-12">
+      <div class="card shadow">
+        <div class="card-header bg-light">
+          <ul class="nav nav-tabs card-header-tabs" id="logrosTab" role="tablist">
+            <% Object.entries(tiposLogros).forEach(([tipoKey, tipo], index) => { %>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link <%= index === 0 ? 'active' : '' %>" 
+                        id="<%= tipoKey %>-tab" 
+                        data-bs-toggle="tab" 
+                        data-bs-target="#<%= tipoKey %>" 
+                        type="button" 
+                        role="tab" 
+                        aria-controls="<%= tipoKey %>" 
+                        aria-selected="<%= index === 0 ? 'true' : 'false' %>">
+                  <i class="fas <%= tipo.icono %> me-2 text-<%= tipo.color %>"></i> <%= tipo.nombre %>
+                </button>
+              </li>
+            <% }); %>
+          </ul>
+        </div>
+        <div class="card-body">
+          <div class="tab-content" id="logrosTabContent">
+            <% Object.entries(tiposLogros).forEach(([tipoKey, tipo], index) => { %>
+              <div class="tab-pane fade <%= index === 0 ? 'show active' : '' %>" 
+                   id="<%= tipoKey %>" 
+                   role="tabpanel" 
+                   aria-labelledby="<%= tipoKey %>-tab">
+                
+                <h4 class="mb-4">
+                  <i class="fas <%= tipo.icono %> me-2 text-<%= tipo.color %>"></i> 
+                  Logros de <%= tipo.nombre %>
+                </h4>
+                
+                <div class="row g-4">
+                  <% if (tipo.logros.length === 0) { %>
+                    <div class="col-12">
+                      <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> No hay logros disponibles en esta categoría.
+                        
+                        <!-- Botón para inicializar logros si no hay ninguno -->
+                        <div class="mt-3">
+                          <a href="/users/logros/inicializar" class="btn btn-outline-primary">
+                            <i class="fas fa-sync-alt me-2"></i> Inicializar Logros
+                          </a>
+                          <a href="/users/logros/reinicializar" class="btn btn-outline-danger ms-2" onclick="return confirm('¿Estás seguro? Esto eliminará todos los logros existentes y creará nuevos. Los usuarios perderán sus logros desbloqueados.')">
+                            <i class="fas fa-trash-restore me-2"></i> Reinicializar Todos los Logros
+                          </a>
+                          <small class="d-block mt-2 text-muted">
+                            <i class="fas fa-info-circle me-1"></i> Si no ves logros, haz clic en "Inicializar Logros". Si ya existen logros pero quieres actualizar a la nueva versión con más logros, usa "Reinicializar Todos los Logros".
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                  <% } else { %>
+                    <% tipo.logros.forEach(logro => { %>
+                      <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 <%= logro.desbloqueado ? 'border-' + tipo.color : 'bg-light opacity-75' %>">
+                          <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                              <div class="rounded-circle bg-<%= logro.desbloqueado ? tipo.color : 'secondary' %> d-flex justify-content-center align-items-center me-3"
+                                   style="width: 50px; height: 50px; min-width: 50px;">
+                                <i class="fas <%= logro.icono %> <%= logro.desbloqueado ? 'text-white' : 'text-white opacity-50' %> fa-lg"></i>
+                              </div>
+                              <div>
+                                <h5 class="card-title mb-0 <%= !logro.desbloqueado ? 'text-muted' : '' %>">
+                                  <%= logro.titulo %>
+                                  <% if (logro.desbloqueado) { %>
+                                    <i class="fas fa-check-circle text-success ms-2"></i>
+                                  <% } %>
+                                </h5>
+                                <div class="text-muted small">
+                                  <% for (let i = 0; i < logro.nivel; i++) { %>
+                                    <i class="fas fa-star text-<%= logro.desbloqueado ? 'warning' : 'secondary' %>"></i>
+                                  <% } %>
+                                </div>
+                              </div>
+                            </div>
+                            <p class="card-text <%= !logro.desbloqueado ? 'text-muted' : '' %>">
+                              <%= logro.descripcion %>
+                            </p>
+                            <% if (!logro.desbloqueado) { %>
+                              <div class="mt-2 text-end">
+                                <span class="badge bg-secondary">
+                                  <i class="fas fa-lock me-1"></i> Bloqueado
+                                </span>
+                              </div>
+                            <% } else { %>
+                              <div class="mt-2 text-end">
+                                <span class="badge bg-primary">
+                                  <i class="fas fa-medal me-1"></i> +<%= logro.puntos_exp %> EXP
+                                </span>
+                              </div>
+                            <% } %>
+                          </div>
+                        </div>
+                      </div>
+                    <% }); %>
+                  <% } %>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Botones de navegación -->
+    <div class="col-12 d-flex justify-content-between mt-4">
+      <a href="/dashboard" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Volver al Dashboard
+      </a>
+      <a href="/entrenamientos" class="btn btn-outline-primary">
+        <i class="fas fa-dumbbell me-2"></i> Mis Entrenamientos
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="d-sm-none">
+  <a href="/dashboard" class="btn btn-primary mobile-float-btn">
+    <i class="fas fa-home"></i>
+  </a>
+</div>
+
+<script>
+  // Activar tooltips de Bootstrap
+  document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+  });
+</script> 

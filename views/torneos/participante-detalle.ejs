@@ -1,0 +1,540 @@
+<div class="container mt-4 mb-5">
+  <div class="row">
+    <div class="col-12 mb-4">
+      <div class="card shadow">
+        <div class="card-header bg-info text-white">
+          <div class="d-flex justify-content-between align-items-center">
+            <h2 class="h4 mb-0">
+              <i class="fas fa-user-circle me-2"></i> Desempeño del Arquero
+            </h2>
+            <span class="badge bg-light text-info">
+              <%= participante.usuario.nombre %> <%= participante.usuario.apellido %>
+            </span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <p><strong>Torneo:</strong> <%= torneo.nombre %></p>
+              <p><strong>Cédula:</strong> <%= participante.usuario.cedula %></p>
+              <p><strong>Tipo de Arco:</strong> <%= participante.usuario.tipoArco %></p>
+            </div>
+            <div class="col-md-6">
+              <p><strong>Puntuación Total:</strong> <span class="badge bg-success"><%= participante.puntuacion %></span></p>
+              <p><strong>Rondas Completadas:</strong> <%= participante.tiradas.length %> de <%= torneo.rondas %></p>
+              <p><strong>Posición Actual:</strong> <%= posicion %>° lugar</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rendimiento por Ronda -->
+    <div class="col-md-12 mb-4">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h3 class="h5 mb-0"><i class="fas fa-chart-line me-2"></i> Rendimiento por Ronda</h3>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead class="table-light">
+                <tr>
+                  <th class="text-center">Ronda</th>
+                  <% for(let i = 1; i <= torneo.flechasPorTirada; i++) { %>
+                    <th class="text-center">F<%= i %></th>
+                  <% } %>
+                  <th class="text-center">Total</th>
+                  <th class="text-center">Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% 
+                  // Ordenar tiradas por número de ronda
+                  const tiradasOrdenadas = [...participante.tiradas].sort((a, b) => a.ronda - b.ronda);
+                %>
+                <% tiradasOrdenadas.forEach(tirada => { %>
+                  <tr>
+                    <td class="text-center"><strong><%= tirada.ronda %></strong></td>
+                    <% tirada.puntos.forEach(punto => { %>
+                      <td class="text-center <%= punto >= 8 ? 'table-success' : punto >= 5 ? 'table-warning' : 'table-danger' %>">
+                        <strong><%= punto %></strong>
+                      </td>
+                    <% }); %>
+                    <td class="text-center table-primary"><strong><%= tirada.total %></strong></td>
+                    <td class="text-center"><%= new Date(tirada.createdAt).toLocaleString('es-ES') %></td>
+                  </tr>
+                <% }); %>
+                <!-- Fila de totales -->
+                <tr class="table-secondary">
+                  <td class="text-center"><strong>Prom.</strong></td>
+                  <% 
+                    // Calcular promedio por columna de flechas
+                    const promediosPorFlecha = [];
+                    for(let i = 0; i < torneo.flechasPorTirada; i++) {
+                      let suma = 0;
+                      let conteo = 0;
+                      participante.tiradas.forEach(tirada => {
+                        if (tirada.puntos[i] !== undefined) {
+                          suma += tirada.puntos[i];
+                          conteo++;
+                        }
+                      });
+                      promediosPorFlecha.push(conteo > 0 ? (suma / conteo).toFixed(1) : 0);
+                    }
+                  %>
+                  <% promediosPorFlecha.forEach(promedio => { %>
+                    <td class="text-center"><strong><%= promedio %></strong></td>
+                  <% }); %>
+                  <td class="text-center">
+                    <strong>
+                      <%= participante.tiradas.length > 0 
+                          ? (participante.puntuacion / participante.tiradas.length).toFixed(1) 
+                          : 0 %>
+                    </strong>
+                  </td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="col-md-12 mb-4">
+      <div class="card shadow">
+        <div class="card-header bg-info text-white">
+          <h3 class="h5 mb-0"><i class="fas fa-calculator me-2"></i> Estadísticas</h3>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-3 mb-3">
+              <div class="card border-success h-100">
+                <div class="card-body text-center">
+                  <h4 class="h5">Mejor Puntuación</h4>
+                  <% 
+                    let mejorTirada = { total: 0 };
+                    participante.tiradas.forEach(tirada => {
+                      if (tirada.total > mejorTirada.total) {
+                        mejorTirada = tirada;
+                      }
+                    });
+                  %>
+                  <h3 class="text-success mt-3"><%= mejorTirada.total || 0 %></h3>
+                  <p class="text-muted mb-0">
+                    <% if (mejorTirada.ronda) { %>
+                      Ronda <%= mejorTirada.ronda %>
+                    <% } else { %>
+                      Ninguna tirada registrada
+                    <% } %>
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card border-danger h-100">
+                <div class="card-body text-center">
+                  <h4 class="h5">Peor Puntuación</h4>
+                  <% 
+                    let peorTirada = { total: participante.tiradas.length > 0 ? 100 : 0 };
+                    participante.tiradas.forEach(tirada => {
+                      if (tirada.total < peorTirada.total && participante.tiradas.length > 0) {
+                        peorTirada = tirada;
+                      }
+                    });
+                  %>
+                  <h3 class="text-danger mt-3">
+                    <%= participante.tiradas.length > 0 ? peorTirada.total : 0 %>
+                  </h3>
+                  <p class="text-muted mb-0">
+                    <% if (peorTirada.ronda) { %>
+                      Ronda <%= peorTirada.ronda %>
+                    <% } else { %>
+                      Ninguna tirada registrada
+                    <% } %>
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card border-warning h-100">
+                <div class="card-body text-center">
+                  <h4 class="h5">Promedio por Ronda</h4>
+                  <h3 class="text-warning mt-3">
+                    <%= participante.tiradas.length > 0 
+                        ? (participante.puntuacion / participante.tiradas.length).toFixed(1) 
+                        : 0 %>
+                  </h3>
+                  <p class="text-muted mb-0">
+                    <%= participante.tiradas.length %> rondas completadas
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 mb-3">
+              <div class="card border-primary h-100">
+                <div class="card-body text-center">
+                  <h4 class="h5">Promedio por Flecha</h4>
+                  <% 
+                    const totalFlechas = participante.tiradas.reduce((total, tirada) => total + tirada.puntos.length, 0);
+                    const promedioPorFlecha = totalFlechas > 0 
+                      ? (participante.puntuacion / totalFlechas).toFixed(1) 
+                      : 0;
+                  %>
+                  <h3 class="text-primary mt-3"><%= promedioPorFlecha %></h3>
+                  <p class="text-muted mb-0">
+                    <%= totalFlechas %> flechas disparadas
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Distribución de puntuaciones -->
+          <div class="row mt-4">
+            <div class="col-md-12">
+              <h5><i class="fas fa-bullseye me-2"></i> Distribución de Puntuaciones</h5>
+              <div class="table-responsive">
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <% for(let i = 10; i >= 0; i--) { %>
+                        <th class="text-center <%= i >= 8 ? 'bg-success text-white' : i >= 5 ? 'bg-warning' : i > 0 ? 'bg-danger text-white' : 'bg-light' %>"><%= i %></th>
+                      <% } %>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <% 
+                        // Contar ocurrencias de cada puntuación
+                        const conteo = Array(11).fill(0);
+                        let totalPuntos = 0;
+                        
+                        participante.tiradas.forEach(tirada => {
+                          tirada.puntos.forEach(punto => {
+                            conteo[punto]++;
+                            totalPuntos++;
+                          });
+                        });
+                      %>
+                      
+                      <% for(let i = 10; i >= 0; i--) { %>
+                        <td class="text-center">
+                          <strong><%= conteo[i] %></strong>
+                          <div class="small text-muted">
+                            <%= totalPuntos > 0 ? Math.round((conteo[i] / totalPuntos) * 100) : 0 %>%
+                          </div>
+                        </td>
+                      <% } %>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <!-- Gráfico de barras para distribución de puntuaciones -->
+              <div class="progress mt-2" style="height: 25px;">
+                <% for(let i = 10; i >= 0; i--) { %>
+                  <% const porcentaje = totalPuntos > 0 ? (conteo[i] / totalPuntos) * 100 : 0; %>
+                  <div class="progress-bar <%= i === 10 ? 'bg-success' : i >= 8 ? 'bg-info' : i >= 5 ? 'bg-warning' : 'bg-danger' %>" 
+                       role="progressbar" 
+                       style="width: <%= porcentaje %>%;" 
+                       aria-valuenow="<%= porcentaje %>" 
+                       aria-valuemin="0" 
+                       aria-valuemax="100"
+                       title="<%= i %> puntos: <%= conteo[i] %> flechas (<%= Math.round(porcentaje) %>%)">
+                    <% if (porcentaje > 5) { %>
+                      <%= i %>: <%= Math.round(porcentaje) %>%
+                    <% } %>
+                  </div>
+                <% } %>
+              </div>
+              <div class="text-center small text-muted mt-2">
+                Distribución de <%= totalPuntos %> flechas disparadas en <%= participante.tiradas.length %> rondas
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Consistencia por Ronda -->
+    <div class="col-md-12 mb-4">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h3 class="h5 mb-0"><i class="fas fa-chart-bar me-2"></i> Consistencia por Ronda</h3>
+        </div>
+        <div class="card-body">
+          <% if (participante.tiradas.length > 0) { %>
+            <div class="progress mb-4" style="height: 25px;">
+              <% 
+                // Ordenar tiradas por número de ronda
+                const tiradasPorRonda = [...participante.tiradas].sort((a, b) => a.ronda - b.ronda);
+                const maxPuntuacion = torneo.flechasPorTirada * 10; // Máxima puntuación posible por ronda
+              %>
+              
+              <% tiradasPorRonda.forEach(tirada => { %>
+                <% const anchoRonda = 100 / tiradasPorRonda.length; %>
+                <% const porcentajeRonda = (tirada.total / maxPuntuacion) * 100; %>
+                <div class="progress-bar 
+                  <%= porcentajeRonda >= 80 ? 'bg-success' : 
+                     porcentajeRonda >= 60 ? 'bg-info' : 
+                     porcentajeRonda >= 40 ? 'bg-warning' : 'bg-danger' %>" 
+                  role="progressbar" 
+                  style="width: <%= anchoRonda %>%;" 
+                  title="Ronda <%= tirada.ronda %>: <%= tirada.total %> puntos (<%= Math.round(porcentajeRonda) %>%)">
+                  <%= tirada.ronda %>
+                </div>
+              <% }); %>
+            </div>
+            
+            <div class="text-center small">
+              <span class="badge bg-success me-2">≥ 80%</span>
+              <span class="badge bg-info me-2">≥ 60%</span>
+              <span class="badge bg-warning me-2">≥ 40%</span>
+              <span class="badge bg-danger">< 40%</span>
+            </div>
+            
+            <div class="table-responsive mt-3">
+              <table class="table table-sm table-bordered">
+                <thead>
+                  <tr>
+                    <th>Ronda</th>
+                    <th>Puntuación</th>
+                    <th>Promedio por Flecha</th>
+                    <th>% del Máximo</th>
+                    <th>Tendencia</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% 
+                    let puntuacionAnterior = null;
+                  %>
+                  <% tiradasPorRonda.forEach((tirada, index) => { %>
+                    <tr>
+                      <td><strong><%= tirada.ronda %></strong></td>
+                      <td><%= tirada.total %> / <%= maxPuntuacion %></td>
+                      <td><%= (tirada.total / tirada.puntos.length).toFixed(1) %></td>
+                      <td><%= Math.round((tirada.total / maxPuntuacion) * 100) %>%</td>
+                      <td>
+                        <% if (index > 0 && puntuacionAnterior !== null) { %>
+                          <% if (tirada.total > puntuacionAnterior) { %>
+                            <i class="fas fa-arrow-up text-success"></i> +<%= tirada.total - puntuacionAnterior %>
+                          <% } else if (tirada.total < puntuacionAnterior) { %>
+                            <i class="fas fa-arrow-down text-danger"></i> <%= tirada.total - puntuacionAnterior %>
+                          <% } else { %>
+                            <i class="fas fa-equals text-info"></i> =
+                          <% } %>
+                        <% } else { %>
+                          <i class="fas fa-minus text-muted"></i>
+                        <% } %>
+                        <% puntuacionAnterior = tirada.total; %>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          <% } else { %>
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i> No hay rondas registradas aún para este participante.
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 d-flex justify-content-between mb-5">
+      <a href="/torneos/<%= torneo._id %>/tiradas" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Volver a Tiradas
+      </a>
+      <a href="/torneos/<%= torneo._id %>" class="btn btn-outline-primary">
+        <i class="fas fa-info-circle me-2"></i> Detalles del Torneo
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="d-sm-none">
+  <a href="/dashboard" class="btn btn-primary mobile-float-btn">
+    <i class="fas fa-home"></i>
+  </a>
+</div>
+
+<!-- Contenedores para los gráficos -->
+<div class="row mt-4">
+  <div class="col-md-6 mb-4">
+    <div class="card shadow">
+      <div class="card-header bg-primary text-white">
+        <h3 class="h5 mb-0"><i class="fas fa-chart-bar me-2"></i> Distribución de Puntuaciones</h3>
+      </div>
+      <div class="card-body">
+        <canvas id="distribucionChart"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 mb-4">
+    <div class="card shadow">
+      <div class="card-header bg-success text-white">
+        <h3 class="h5 mb-0"><i class="fas fa-chart-line me-2"></i> Progresión por Ronda</h3>
+      </div>
+      <div class="card-body">
+        <canvas id="progresionChart"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-12 mb-4">
+    <div class="card shadow">
+      <div class="card-header bg-info text-white">
+        <h3 class="h5 mb-0"><i class="fas fa-chart-radar me-2"></i> Perfil de Habilidades</h3>
+      </div>
+      <div class="card-body">
+        <canvas id="radarChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts para gráficos -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Datos para las gráficas
+const stats = <%- JSON.stringify(stats) %>;
+const participante = <%- JSON.stringify(participante) %>;
+const torneo = <%- JSON.stringify(torneo) %>;
+
+// Gráfico de Distribución de Puntos
+const distribucionCtx = document.getElementById('distribucionChart').getContext('2d');
+new Chart(distribucionCtx, {
+  type: 'bar',
+  data: {
+    labels: Array.from({length: 11}, (_, i) => i),
+    datasets: [{
+      label: 'Cantidad de Flechas',
+      data: stats.distribucionPuntos,
+      backgroundColor: Array.from({length: 11}, (_, i) => 
+        i >= 8 ? '#198754' : // verde para 8-10
+        i >= 5 ? '#0dcaf0' : // azul para 5-7
+        '#dc3545'            // rojo para 0-4
+      ),
+      borderWidth: 1
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Distribución de Puntuaciones'
+      },
+      legend: {
+        display: false
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Cantidad de Flechas'
+        }
+      },
+      x: {
+        title: {
+          display: true,
+          text: 'Puntuación'
+        }
+      }
+    }
+  }
+});
+
+// Gráfico de Progresión por Ronda
+const progresionCtx = document.getElementById('progresionChart').getContext('2d');
+const tiradasOrdenadas = [...participante.tiradas].sort((a, b) => a.ronda - b.ronda);
+new Chart(progresionCtx, {
+  type: 'line',
+  data: {
+    labels: tiradasOrdenadas.map(t => `Ronda ${t.ronda}`),
+    datasets: [{
+      label: 'Puntuación por Ronda',
+      data: tiradasOrdenadas.map(t => t.total),
+      borderColor: '#198754',
+      backgroundColor: 'rgba(25, 135, 84, 0.1)',
+      tension: 0.1,
+      fill: true
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Progresión de Puntuación por Ronda'
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Puntuación Total'
+        }
+      }
+    }
+  }
+});
+
+// Gráfico de Radar de Habilidades
+const radarCtx = document.getElementById('radarChart').getContext('2d');
+new Chart(radarCtx, {
+  type: 'radar',
+  data: {
+    labels: [
+      'Precisión Alta (8-10)',
+      'Precisión Media (5-7)',
+      'Consistencia',
+      'Promedio por Ronda',
+      'Mejor Tirada'
+    ],
+    datasets: [{
+      label: 'Perfil del Arquero',
+      data: [
+        // Calcular porcentaje de tiros altos (8-10)
+        stats.totalFlechas > 0 ? (stats.distribucionPuntos.slice(8).reduce((a, b) => a + b, 0) / stats.totalFlechas * 100) : 0,
+        // Calcular porcentaje de tiros medios (5-7)
+        stats.totalFlechas > 0 ? (stats.distribucionPuntos.slice(5, 8).reduce((a, b) => a + b, 0) / stats.totalFlechas * 100) : 0,
+        // Convertir consistencia a porcentaje (menor es mejor)
+        Math.max(0, 100 - (stats.consistencia * 10)),
+        // Promedio por ronda como porcentaje del máximo posible
+        (stats.promedioPorRonda / (torneo.flechasPorTirada * 10)) * 100,
+        // Mejor tirada como porcentaje del máximo posible
+        (stats.mejorTirada.total / (torneo.flechasPorTirada * 10)) * 100
+      ],
+      backgroundColor: 'rgba(13, 110, 253, 0.2)',
+      borderColor: '#0d6efd',
+      pointBackgroundColor: '#0d6efd'
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Perfil de Habilidades'
+      }
+    },
+    scales: {
+      r: {
+        angleLines: {
+          display: true
+        },
+        suggestedMin: 0,
+        suggestedMax: 100
+      }
+    }
+  }
+});
+</script> 

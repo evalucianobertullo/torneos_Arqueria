@@ -1,0 +1,171 @@
+<div class="row">
+  <div class="col-12 mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <h1 class="h2"><i class="fas fa-trophy me-2"></i> Mis Torneos</h1>
+      <a href="/torneos/crear" class="btn btn-primary">
+        <i class="fas fa-plus-circle me-2"></i> Crear Torneo
+      </a>
+    </div>
+    <hr>
+
+    <!-- Panel de filtros -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <form action="/torneos/mis-torneos" method="GET" class="row g-3">
+          <div class="col-md-5">
+            <label for="fechaDesde" class="form-label">Fecha desde</label>
+            <input type="date" class="form-control form-control-sm" id="fechaDesde" name="fechaDesde" 
+                  value="<%= typeof filtros !== 'undefined' && filtros.fechaDesde ? filtros.fechaDesde : '' %>">
+          </div>
+          <div class="col-md-5">
+            <label for="fechaHasta" class="form-label">Fecha hasta</label>
+            <input type="date" class="form-control form-control-sm" id="fechaHasta" name="fechaHasta"
+                  value="<%= typeof filtros !== 'undefined' && filtros.fechaHasta ? filtros.fechaHasta : '' %>">
+          </div>
+          <div class="col-md-2 align-self-end">
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="checkbox" id="ocultarFinalizados" name="ocultarFinalizados" 
+                    <%= typeof filtros !== 'undefined' && filtros.ocultarFinalizados ? 'checked' : '' %>>
+              <label class="form-check-label" for="ocultarFinalizados">
+                Ocultar finalizados
+              </label>
+            </div>
+          </div>
+          <div class="col-12 d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary btn-sm me-2">
+              <i class="fas fa-filter me-1"></i> Filtrar
+            </button>
+            <a href="/torneos/mis-torneos" class="btn btn-outline-secondary btn-sm">
+              <i class="fas fa-times me-1"></i> Limpiar
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Torneos creados por el usuario -->
+  <div class="col-12 mb-4">
+    <h2 class="h4"><i class="fas fa-user-crown me-2"></i> Torneos Creados</h2>
+    
+    <% if (torneosCreados && torneosCreados.length > 0) { %>
+      <div class="row mt-3">
+        <% torneosCreados.forEach(torneo => { %>
+          <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow h-100">
+              <div class="card-header d-flex justify-content-between align-items-center
+                <%= torneo.estado === 'preparacion' ? 'bg-warning text-dark' : 
+                   torneo.estado === 'activo' ? 'bg-success text-white' : 'bg-secondary text-white' %>">
+                <h5 class="mb-0 text-truncate">
+                  <i class="<%= torneo.estado === 'preparacion' ? 'fas fa-clock' : 
+                               torneo.estado === 'activo' ? 'fas fa-play' : 'fas fa-flag-checkered' %> me-2"></i>
+                  <%= torneo.nombre %>
+                </h5>
+                <span class="badge <%= torneo.estado === 'preparacion' ? 'bg-dark' : 
+                                        torneo.estado === 'activo' ? 'bg-light text-success' : 'bg-light text-secondary' %>">
+                  <%= torneo.estado === 'preparacion' ? 'En preparación' : 
+                     torneo.estado === 'activo' ? 'Activo' : 'Finalizado' %>
+                </span>
+              </div>
+              <div class="card-body">
+                <p class="card-text">
+                  <strong>Fecha:</strong> <%= new Date(torneo.fecha).toLocaleDateString('es-ES') %>
+                </p>
+                <p class="card-text">
+                  <strong>Distancia:</strong> <%= torneo.distancia %> | 
+                  <strong>Participantes:</strong> <%= torneo.participantes ? torneo.participantes.length : 0 %>
+                </p>
+                <div class="d-grid mt-3">
+                  <a href="/torneos/<%= torneo._id %>" class="btn btn-outline-primary">
+                    Administrar Torneo
+                  </a>
+                  <a href="/torneos/<%= torneo._id %>/eliminar" class="btn btn-outline-danger mt-2"
+                    onclick="return confirm('¿Estás seguro de que deseas eliminar este torneo? Esta acción no se puede deshacer y se perderán todos los datos asociados.')">
+                    <i class="fas fa-trash-alt me-2"></i> Eliminar Torneo
+                  </a>
+                </div>
+              </div>
+              <div class="card-footer text-muted">
+                <small>Creado: <%= new Date(torneo.createdAt).toLocaleDateString('es-ES') %></small>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="alert alert-info mt-3">
+        <i class="fas fa-info-circle me-2"></i> No has creado ningún torneo aún.
+      </div>
+      <div class="text-center mt-3 mb-4">
+        <a href="/torneos/crear" class="btn btn-primary">
+          <i class="fas fa-plus-circle me-2"></i> Crear mi primer torneo
+        </a>
+      </div>
+    <% } %>
+  </div>
+  
+  <!-- Torneos en los que participa -->
+  <div class="col-12 mb-4">
+    <h2 class="h4"><i class="fas fa-users me-2"></i> Torneos en los que Participo</h2>
+    
+    <% if (torneosParticipando && torneosParticipando.length > 0) { %>
+      <div class="row mt-3">
+        <% torneosParticipando.forEach(torneo => { %>
+          <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow h-100">
+              <div class="card-header d-flex justify-content-between align-items-center
+                <%= torneo.estado === 'preparacion' ? 'bg-info text-dark' : 
+                   torneo.estado === 'activo' ? 'bg-success text-white' : 'bg-secondary text-white' %>">
+                <h5 class="mb-0 text-truncate">
+                  <i class="<%= torneo.estado === 'preparacion' ? 'fas fa-clock' : 
+                               torneo.estado === 'activo' ? 'fas fa-play' : 'fas fa-flag-checkered' %> me-2"></i>
+                  <%= torneo.nombre %>
+                </h5>
+                <span class="badge <%= torneo.estado === 'preparacion' ? 'bg-dark' : 
+                                        torneo.estado === 'activo' ? 'bg-light text-success' : 'bg-light text-secondary' %>">
+                  <%= torneo.estado === 'preparacion' ? 'En preparación' : 
+                     torneo.estado === 'activo' ? 'Activo' : 'Finalizado' %>
+                </span>
+              </div>
+              <div class="card-body">
+                <p class="card-text">
+                  <strong>Creador:</strong> <%= torneo.creador ? `${torneo.creador.nombre} ${torneo.creador.apellido}` : 'Desconocido' %>
+                </p>
+                <p class="card-text">
+                  <strong>Fecha:</strong> <%= new Date(torneo.fecha).toLocaleDateString('es-ES') %>
+                </p>
+                <p class="card-text">
+                  <strong>Distancia:</strong> <%= torneo.distancia %> | 
+                  <strong>Participantes:</strong> <%= torneo.participantes ? torneo.participantes.length : 0 %>
+                </p>
+                <div class="d-grid mt-3">
+                  <a href="/torneos/<%= torneo._id %>" class="btn btn-outline-primary">
+                    Ver Detalles
+                  </a>
+                </div>
+              </div>
+              <div class="card-footer text-muted">
+                <small>Creado: <%= new Date(torneo.createdAt).toLocaleDateString('es-ES') %></small>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="alert alert-info mt-3">
+        <i class="fas fa-info-circle me-2"></i> No estás participando en ningún torneo actualmente.
+      </div>
+      <div class="text-center mt-3 mb-4">
+        <a href="/torneos" class="btn btn-primary">
+          <i class="fas fa-search me-2"></i> Explorar torneos disponibles
+        </a>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<div class="d-sm-none">
+  <a href="/dashboard" class="btn btn-primary mobile-float-btn">
+    <i class="fas fa-home"></i>
+  </a>
+</div> 

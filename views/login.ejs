@@ -1,0 +1,43 @@
+<div class="row justify-content-center">
+  <div class="col-md-6 col-sm-12">
+    <div class="card shadow auth-card">
+      <div class="card-header bg-primary text-white">
+        <h3 class="auth-title"><i class="fas fa-sign-in-alt auth-icon"></i> Iniciar Sesión</h3>
+      </div>
+      <div class="card-body">
+        <form action="/login" method="POST">
+          <div class="mb-4">
+            <label for="cedula" class="form-label">Cédula</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+              <input type="text" class="form-control" id="cedula" name="cedula" 
+                     placeholder="Ingresa tu cédula" autocomplete="off" required>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label for="password" class="form-label">Contraseña</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-lock"></i></span>
+              <input type="password" class="form-control" id="password" name="password" 
+                     placeholder="Ingresa tu contraseña" required>
+            </div>
+          </div>
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary btn-lg">
+              <i class="fas fa-sign-in-alt me-2"></i> Iniciar Sesión
+            </button>
+          </div>
+        </form>
+      </div>
+      <div class="card-footer auth-footer">
+        <p class="mb-0">¿No tienes una cuenta? <a href="/register" class="fw-bold">Regístrate</a></p>
+      </div>
+    </div>
+    
+    <div class="text-center mt-4">
+      <a href="/" class="text-decoration-none">
+        <i class="fas fa-arrow-left me-2"></i> Volver a inicio
+      </a>
+    </div>
+  </div>
+</div> 

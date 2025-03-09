@@ -1,0 +1,164 @@
+<div class="container mt-4 mb-5">
+  <div class="row">
+    <div class="col-12 mb-4">
+      <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <h1 class="h2">
+          <i class="fas fa-history me-2 text-info"></i> Mis Actividades
+        </h1>
+        <a href="/actividades" class="btn btn-primary">
+          <i class="fas fa-rss me-2"></i> Ver Feed General
+        </a>
+      </div>
+      <hr>
+      
+      <% if (mensajeExito && typeof mensajeExito === 'string' && mensajeExito !== '') { %>
+        <div class="mb-3 text-success">
+          <i class="fas fa-check-circle me-2"></i> <%= mensajeExito %>
+        </div>
+      <% } %>
+      
+      <% if (mensajeError && typeof mensajeError === 'string' && mensajeError !== '') { %>
+        <div class="mb-3 text-danger">
+          <i class="fas fa-exclamation-circle me-2"></i> <%= mensajeError %>
+        </div>
+      <% } %>
+    </div>
+    
+    <!-- Lista de actividades del usuario -->
+    <div class="col-12">
+      <div class="card shadow">
+        <div class="card-body p-0">
+          <div class="list-group list-group-flush">
+            <% if (actividades && actividades.length > 0) { %>
+              <% actividades.forEach(actividad => { %>
+                <div class="list-group-item p-3">
+                  <div class="d-flex">
+                    <!-- Ícono -->
+                    <div class="me-3">
+                      <div class="rounded-circle bg-<%= actividad.color %> d-flex justify-content-center align-items-center" 
+                           style="width: 48px; height: 48px; min-width: 48px;">
+                        <i class="fas <%= actividad.icono %> text-white"></i>
+                      </div>
+                    </div>
+                    
+                    <!-- Contenido -->
+                    <div class="flex-grow-1">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-1">
+                          <% if (actividad.tipo === 'entrenamiento') { %>
+                            <span class="badge bg-success">Entrenamiento</span>
+                          <% } else if (actividad.tipo === 'logro') { %>
+                            <span class="badge bg-warning">Logro</span>
+                          <% } else if (actividad.tipo === 'nivel') { %>
+                            <span class="badge bg-primary">Nivel</span>
+                          <% } else if (actividad.tipo === 'torneo') { %>
+                            <span class="badge bg-info">Torneo</span>
+                          <% } %>
+                        </h6>
+                        <small class="text-muted">
+                          <%= formatearFecha(actividad.fecha) %>
+                        </small>
+                      </div>
+                      <p class="mb-1">
+                        <%= actividad.mensaje %>
+                      </p>
+                      <div>
+                        <% if (actividad.tipo === 'entrenamiento') { %>
+                          <a href="/entrenamientos/<%= actividad.entidadId %>" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-eye me-1"></i> Ver entrenamiento
+                          </a>
+                        <% } else if (actividad.tipo === 'torneo') { %>
+                          <a href="/torneos/<%= actividad.entidadId %>" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye me-1"></i> Ver torneo
+                          </a>
+                        <% } %>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% }); %>
+              
+              <!-- Paginación -->
+              <% if (paginacion.totalPaginas > 1) { %>
+                <div class="p-3">
+                  <nav aria-label="Navegación de páginas">
+                    <ul class="pagination justify-content-center mb-0">
+                      <% if (paginacion.pagina > 1) { %>
+                        <li class="page-item">
+                          <a class="page-link" href="/actividades/usuario/<%= usuarioId %>?pagina=<%= paginacion.pagina - 1 %>">
+                            <i class="fas fa-chevron-left"></i>
+                          </a>
+                        </li>
+                      <% } else { %>
+                        <li class="page-item disabled">
+                          <span class="page-link">
+                            <i class="fas fa-chevron-left"></i>
+                          </span>
+                        </li>
+                      <% } %>
+                      
+                      <% 
+                        let startPage = Math.max(1, paginacion.pagina - 2);
+                        let endPage = Math.min(paginacion.totalPaginas, startPage + 4);
+                        if (endPage - startPage < 4) {
+                          startPage = Math.max(1, endPage - 4);
+                        }
+                      %>
+                      
+                      <% for (let i = startPage; i <= endPage; i++) { %>
+                        <li class="page-item <%= i === paginacion.pagina ? 'active' : '' %>">
+                          <a class="page-link" href="/actividades/usuario/<%= usuarioId %>?pagina=<%= i %>"><%= i %></a>
+                        </li>
+                      <% } %>
+                      
+                      <% if (paginacion.pagina < paginacion.totalPaginas) { %>
+                        <li class="page-item">
+                          <a class="page-link" href="/actividades/usuario/<%= usuarioId %>?pagina=<%= paginacion.pagina + 1 %>">
+                            <i class="fas fa-chevron-right"></i>
+                          </a>
+                        </li>
+                      <% } else { %>
+                        <li class="page-item disabled">
+                          <span class="page-link">
+                            <i class="fas fa-chevron-right"></i>
+                          </span>
+                        </li>
+                      <% } %>
+                    </ul>
+                  </nav>
+                </div>
+              <% } %>
+            <% } else { %>
+              <div class="text-center p-5">
+                <i class="far fa-calendar-times fa-3x text-muted mb-3"></i>
+                <h5>No hay actividades registradas</h5>
+                <p class="text-muted">
+                  Completa entrenamientos, desbloquea logros o participa en torneos para ver tu actividad aquí.
+                </p>
+                <a href="/entrenamientos/crear" class="btn btn-primary mt-2">
+                  <i class="fas fa-plus-circle me-2"></i> Crear Nuevo Entrenamiento
+                </a>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Botones de navegación -->
+    <div class="col-12 d-flex justify-content-between mt-4">
+      <a href="/dashboard" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Volver al Dashboard
+      </a>
+      <a href="/entrenamientos" class="btn btn-outline-primary">
+        <i class="fas fa-dumbbell me-2"></i> Mis Entrenamientos
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="d-sm-none">
+  <a href="/dashboard" class="btn btn-primary mobile-float-btn">
+    <i class="fas fa-home"></i>
+  </a>
+</div> 

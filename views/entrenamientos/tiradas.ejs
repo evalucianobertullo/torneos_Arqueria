@@ -1,0 +1,590 @@
+<div class="container mt-4 mb-5">
+  <div class="row">
+    <div class="col-12 mb-4">
+      <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <h1 class="h2">
+          <i class="fas fa-bullseye me-2"></i> Registrar Tiradas
+        </h1>
+        <span class="badge bg-primary fs-6 px-3 py-2"><%= entrenamiento.nombre %></span>
+      </div>
+      <hr>
+      
+      <% if (mensajeExito) { %>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <i class="fas fa-check-circle me-2"></i> <%= mensajeExito %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      <% } %>
+      
+      <% if (mensajeError) { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <i class="fas fa-exclamation-circle me-2"></i> <%= mensajeError %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      <% } %>
+    </div>
+    
+    <!-- Información del entrenamiento -->
+    <div class="col-md-4 mb-4">
+      <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+          <h3 class="h5 mb-0"><i class="fas fa-info-circle me-2"></i> Información</h3>
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between">
+              <span><i class="fas fa-calendar-alt me-2"></i> Fecha:</span>
+              <strong><%= formatearFecha(entrenamiento.fecha) %></strong>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <span><i class="fas fa-ruler-horizontal me-2"></i> Distancia:</span>
+              <strong><%= entrenamiento.distancia %></strong>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <span><i class="fas fa-redo me-2"></i> Rondas completadas:</span>
+              <strong class="<%= entrenamiento.tiradas.length === entrenamiento.rondas ? 'text-success' : '' %>">
+                <%= entrenamiento.tiradas.length %> / <%= entrenamiento.rondas %>
+              </strong>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <span><i class="fas fa-bullseye me-2"></i> Flechas por ronda:</span>
+              <strong><%= entrenamiento.flechasPorTirada %></strong>
+            </li>
+          </ul>
+          
+          <% if (entrenamiento.tiradas.length > 0) { %>
+            <div class="mt-3">
+              <h5>Progreso</h5>
+              <div class="progress mb-2" style="height: 20px;">
+                <div class="progress-bar bg-success" 
+                     role="progressbar" 
+                     style="width: <%= (entrenamiento.tiradas.length / entrenamiento.rondas) * 100 %>%;" 
+                     aria-valuenow="<%= (entrenamiento.tiradas.length / entrenamiento.rondas) * 100 %>" 
+                     aria-valuemin="0" 
+                     aria-valuemax="100">
+                  <%= Math.round((entrenamiento.tiradas.length / entrenamiento.rondas) * 100) %>%
+                </div>
+              </div>
+              <p class="text-center small text-muted">
+                <%= entrenamiento.tiradas.length %> de <%= entrenamiento.rondas %> rondas completadas
+              </p>
+            </div>
+          <% } %>
+          
+          <div class="d-grid gap-2 mt-3">
+            <a href="/entrenamientos/<%= entrenamiento._id %>" class="btn btn-outline-primary">
+              <i class="fas fa-info-circle me-2"></i> Ver Detalles
+            </a>
+            <% if (entrenamiento.tiradas.length > 0 && entrenamiento.tiradas.length === entrenamiento.rondas) { %>
+              <a href="/entrenamientos/<%= entrenamiento._id %>/finalizar" class="btn btn-warning"
+                 onclick="return confirm('¿Estás seguro de que deseas finalizar este entrenamiento? Una vez finalizado, no podrás registrar más tiradas.')">
+                <i class="fas fa-flag-checkered me-2"></i> Finalizar Entrenamiento
+              </a>
+            <% } %>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Rondas completadas -->
+      <% if (entrenamiento.tiradas.length > 0) { %>
+        <div class="card shadow">
+          <div class="card-header bg-success text-white">
+            <h3 class="h5 mb-0"><i class="fas fa-check-circle me-2"></i> Rondas Completadas</h3>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-sm table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>Ronda</th>
+                    <th>Total</th>
+                    <th>Promedio</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% entrenamiento.tiradas.sort((a, b) => a.ronda - b.ronda).forEach(tirada => { %>
+                    <tr>
+                      <td><%= tirada.ronda %></td>
+                      <td>
+                        <span class="badge bg-primary"><%= tirada.total %></span>
+                      </td>
+                      <td><%= (tirada.total / tirada.puntos.length).toFixed(1) %></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      <% } %>
+    </div>
+    
+    <!-- Formulario de registro de tirada -->
+    <div class="col-md-8 mb-4">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h3 class="h5 mb-0">
+            <i class="fas fa-edit me-2"></i> Registrar Tirada - Ronda <%= rondaActual %>
+          </h3>
+        </div>
+        <div class="card-body">
+          <form action="/entrenamientos/<%= entrenamiento._id %>/tiradas" method="POST">
+            <input type="hidden" name="ronda" value="<%= rondaActual %>">
+            
+            <div class="alert alert-info mb-4">
+              <i class="fas fa-info-circle me-2"></i> 
+              Registra la puntuación de cada flecha (valores del 0 al 10).
+            </div>
+            
+            <!-- Vista móvil - Selector de flecha -->
+            <div class="d-md-none mb-3">
+              <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Selecciona la flecha</h5>
+                    <span class="badge bg-light text-primary" id="flechaActivaMobile">1 / <%= entrenamiento.flechasPorTirada %></span>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="btn-group d-flex flex-wrap" role="group" id="selectorFlechas">
+                    <% for(let i = 1; i <= entrenamiento.flechasPorTirada; i++) { %>
+                      <button type="button" class="btn btn-outline-primary selector-flecha <%= i === 1 ? 'active' : '' %>" 
+                              data-flecha="<%= i %>">
+                        <%= i %>
+                      </button>
+                    <% } %>
+                  </div>
+                  
+                  <div class="text-center mt-3">
+                    <div class="d-flex justify-content-between align-items-center px-3">
+                      <button type="button" class="btn btn-sm btn-secondary" id="prevFlecha" <%= entrenamiento.flechasPorTirada <= 1 ? 'disabled' : '' %>>
+                        <i class="fas fa-arrow-left"></i> Anterior
+                      </button>
+                      <span class="fs-1 fw-bold" id="puntoDisplayMobile">-</span>
+                      <button type="button" class="btn btn-sm btn-secondary" id="nextFlecha" <%= entrenamiento.flechasPorTirada <= 1 ? 'disabled' : '' %>>
+                        Siguiente <i class="fas fa-arrow-right"></i>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div class="btn-group d-flex flex-wrap mt-3" role="group" id="botoneraMobile">
+                    <% for(let j = 10; j >= 9; j--) { %>
+                      <button type="button" class="btn btn-warning punto-btn-mobile" data-valor="<%= j %>">
+                        <%= j %>
+                      </button>
+                    <% } %>
+                    
+                    <% for(let j = 8; j >= 7; j--) { %>
+                      <button type="button" class="btn btn-danger punto-btn-mobile" data-valor="<%= j %>">
+                        <%= j %>
+                      </button>
+                    <% } %>
+                    
+                    <% for(let j = 6; j >= 5; j--) { %>
+                      <button type="button" class="btn btn-info punto-btn-mobile" data-valor="<%= j %>">
+                        <%= j %>
+                      </button>
+                    <% } %>
+                    
+                    <% for(let j = 4; j >= 3; j--) { %>
+                      <button type="button" class="btn btn-dark punto-btn-mobile" data-valor="<%= j %>">
+                        <%= j %>
+                      </button>
+                    <% } %>
+                    
+                    <% for(let j = 2; j >= 0; j--) { %>
+                      <button type="button" class="btn btn-light punto-btn-mobile border" data-valor="<%= j %>">
+                        <%= j %>
+                      </button>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Vista escritorio - Todas las flechas -->
+            <div class="row mb-4 d-none d-md-flex">
+              <% for(let i = 1; i <= entrenamiento.flechasPorTirada; i++) { %>
+                <div class="col-md-4 col-lg-3 mb-3">
+                  <div class="card border-primary h-100">
+                    <div class="card-header bg-primary text-white py-2">
+                      <h5 class="mb-0 small">Flecha <%= i %></h5>
+                    </div>
+                    <div class="card-body p-2">
+                      <input type="hidden" name="puntos" id="puntos<%= i %>" value="" required>
+                      
+                      <div class="d-flex justify-content-center mb-2">
+                        <span class="fs-2 fw-bold" id="puntosDisplay<%= i %>">-</span>
+                      </div>
+                      
+                      <div class="btn-group d-flex flex-wrap" role="group">
+                        <% for(let j = 10; j >= 9; j--) { %>
+                          <button type="button" class="btn btn-sm btn-warning punto-btn" 
+                                  data-valor="<%= j %>" data-target="puntos<%= i %>">
+                            <%= j %>
+                          </button>
+                        <% } %>
+                        
+                        <% for(let j = 8; j >= 7; j--) { %>
+                          <button type="button" class="btn btn-sm btn-danger punto-btn" 
+                                  data-valor="<%= j %>" data-target="puntos<%= i %>">
+                            <%= j %>
+                          </button>
+                        <% } %>
+                        
+                        <% for(let j = 6; j >= 5; j--) { %>
+                          <button type="button" class="btn btn-sm btn-info punto-btn" 
+                                  data-valor="<%= j %>" data-target="puntos<%= i %>">
+                            <%= j %>
+                          </button>
+                        <% } %>
+                        
+                        <% for(let j = 4; j >= 3; j--) { %>
+                          <button type="button" class="btn btn-sm btn-dark punto-btn" 
+                                  data-valor="<%= j %>" data-target="puntos<%= i %>">
+                            <%= j %>
+                          </button>
+                        <% } %>
+                        
+                        <% for(let j = 2; j >= 0; j--) { %>
+                          <button type="button" class="btn btn-sm btn-light punto-btn border" 
+                                  data-valor="<%= j %>" data-target="puntos<%= i %>">
+                            <%= j %>
+                          </button>
+                        <% } %>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% } %>
+            </div>
+
+            <div class="alert alert-success mb-4" id="resumenTirada" style="display: none;">
+              <h5><i class="fas fa-check-circle me-2"></i> Resumen de la tirada</h5>
+              <div class="row" id="resumenPuntos"></div>
+              <p class="mt-2 mb-0">
+                <strong>Total:</strong> <span id="totalPuntos">0</span> puntos | 
+                <strong>Promedio:</strong> <span id="promedioPuntos">0</span> puntos por flecha
+              </p>
+            </div>
+            
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-success" id="btnGuardar" disabled>
+                <i class="fas fa-save me-2"></i> Guardar Tirada
+              </button>
+              <button type="button" class="btn btn-secondary" id="btnReiniciar">
+                <i class="fas fa-redo me-2"></i> Reiniciar Tirada
+              </button>
+              <a href="/entrenamientos/<%= entrenamiento._id %>" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Volver al Entrenamiento
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <!-- Consejos para mejorar -->
+      <div class="card shadow mt-4">
+        <div class="card-header bg-info text-white">
+          <h3 class="h5 mb-0"><i class="fas fa-lightbulb me-2"></i> Consejos para Mejorar</h3>
+        </div>
+        <div class="card-body">
+          <div id="consejos-carousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+              <div class="carousel-item active">
+                <div class="p-3">
+                  <h5>Mantén una postura estable</h5>
+                  <p>Una postura correcta es fundamental para la consistencia. Mantén los pies separados a la altura de los hombros y el cuerpo perpendicular a la línea de tiro.</p>
+                </div>
+              </div>
+              <div class="carousel-item">
+                <div class="p-3">
+                  <h5>Respira conscientemente</h5>
+                  <p>Controla tu respiración: inhala al levantar el arco, contén parcialmente al apuntar y exhala suavemente después de soltar.</p>
+                </div>
+              </div>
+              <div class="carousel-item">
+                <div class="p-3">
+                  <h5>Mantén el enfoque</h5>
+                  <p>Concéntrate en apuntar al centro de la diana, no en la puntuación. Visualiza la flecha llegando exactamente donde quieres.</p>
+                </div>
+              </div>
+              <div class="carousel-item">
+                <div class="p-3">
+                  <h5>Suelta limpio</h5>
+                  <p>La suelta debe ser suave y natural. Relaja los dedos sin mover el resto del cuerpo manteniendo la posición hasta que la flecha impacte.</p>
+                </div>
+              </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#consejos-carousel" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Anterior</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#consejos-carousel" data-bs-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Siguiente</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Botones de navegación -->
+    <div class="col-12 d-flex justify-content-between">
+      <a href="/entrenamientos" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Volver a Mis Entrenamientos
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="d-sm-none">
+  <a href="/dashboard" class="btn btn-primary mobile-float-btn">
+    <i class="fas fa-home"></i>
+  </a>
+</div>
+
+<!-- Script para botonera de puntos -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Referencias a elementos DOM
+  const puntoBtns = document.querySelectorAll('.punto-btn');
+  const puntoBtnsMobile = document.querySelectorAll('.punto-btn-mobile');
+  const selectorFlechaBtns = document.querySelectorAll('.selector-flecha');
+  const btnGuardar = document.getElementById('btnGuardar');
+  const btnReiniciar = document.getElementById('btnReiniciar');
+  const prevFlecha = document.getElementById('prevFlecha');
+  const nextFlecha = document.getElementById('nextFlecha');
+  const puntoDisplayMobile = document.getElementById('puntoDisplayMobile');
+  const flechaActivaMobile = document.getElementById('flechaActivaMobile');
+  
+  const flechasPorTirada = <%= entrenamiento.flechasPorTirada %>;
+  const resumenTirada = document.getElementById('resumenTirada');
+  const resumenPuntos = document.getElementById('resumenPuntos');
+  const totalPuntos = document.getElementById('totalPuntos');
+  const promedioPuntos = document.getElementById('promedioPuntos');
+  
+  // Inicializar arrays para seguimiento de selecciones
+  const flechasSeleccionadas = new Array(flechasPorTirada).fill(false);
+  const valoresFlechas = new Array(flechasPorTirada).fill(null);
+  
+  // Variable para seguimiento de la flecha actual en móvil
+  let flechaActivaIdx = 0;
+  
+  // Manejar clicks en botones de puntos (escritorio)
+  puntoBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const valor = parseInt(this.dataset.valor);
+      const targetId = this.dataset.target;
+      const index = parseInt(targetId.replace('puntos', '')) - 1;
+      const input = document.getElementById(targetId);
+      const display = document.getElementById(targetId.replace('puntos', 'puntosDisplay'));
+      
+      seleccionarPunto(valor, index, input, display);
+      
+      // Resaltar el botón seleccionado
+      const grupoBtn = this.closest('.btn-group').querySelectorAll('.punto-btn');
+      grupoBtn.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+  
+  // Manejar clicks en botones de puntos (móvil)
+  puntoBtnsMobile.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const valor = parseInt(this.dataset.valor);
+      const index = flechaActivaIdx;
+      const input = document.getElementById(`puntos${index + 1}`);
+      const display = document.getElementById(`puntosDisplay${index + 1}`);
+      
+      seleccionarPunto(valor, index, input, display);
+      
+      // Actualizar el display móvil
+      puntoDisplayMobile.textContent = valor;
+      puntoDisplayMobile.className = 'fs-1 fw-bold ' + getPuntoClass(valor);
+      
+      // Resaltar el botón seleccionado
+      puntoBtnsMobile.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      
+      // Automáticamente pasar a la siguiente flecha si no es la última
+      if (index < flechasPorTirada - 1 && flechasSeleccionadas[index]) {
+        setTimeout(() => {
+          nextFlecha.click();
+        }, 300);
+      }
+    });
+  });
+  
+  // Manejar selección de flecha en móvil
+  selectorFlechaBtns.forEach((btn, idx) => {
+    btn.addEventListener('click', function() {
+      cambiarFlechaActiva(idx);
+    });
+  });
+  
+  // Botones de navegación de flechas
+  if (prevFlecha) {
+    prevFlecha.addEventListener('click', function() {
+      if (flechaActivaIdx > 0) {
+        cambiarFlechaActiva(flechaActivaIdx - 1);
+      }
+    });
+  }
+  
+  if (nextFlecha) {
+    nextFlecha.addEventListener('click', function() {
+      if (flechaActivaIdx < flechasPorTirada - 1) {
+        cambiarFlechaActiva(flechaActivaIdx + 1);
+      }
+    });
+  }
+  
+  function cambiarFlechaActiva(nuevoIdx) {
+    // Actualizar índice activo
+    flechaActivaIdx = nuevoIdx;
+    
+    // Actualizar UI de selector
+    selectorFlechaBtns.forEach((btn, idx) => {
+      if (idx === nuevoIdx) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+    
+    // Actualizar etiqueta de flecha activa
+    flechaActivaMobile.textContent = `${nuevoIdx + 1} / ${flechasPorTirada}`;
+    
+    // Actualizar visualización de punto
+    const valor = valoresFlechas[nuevoIdx];
+    if (valor !== null) {
+      puntoDisplayMobile.textContent = valor;
+      puntoDisplayMobile.className = 'fs-1 fw-bold ' + getPuntoClass(valor);
+      
+      // Marcar el botón correspondiente como activo
+      puntoBtnsMobile.forEach(btn => {
+        if (parseInt(btn.dataset.valor) === valor) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    } else {
+      puntoDisplayMobile.textContent = '-';
+      puntoDisplayMobile.className = 'fs-1 fw-bold';
+      puntoBtnsMobile.forEach(btn => btn.classList.remove('active'));
+    }
+    
+    // Actualizar estado de botones de navegación
+    if (prevFlecha) {
+      prevFlecha.disabled = nuevoIdx === 0;
+    }
+    if (nextFlecha) {
+      nextFlecha.disabled = nuevoIdx === flechasPorTirada - 1;
+    }
+  }
+  
+  // Función para seleccionar un punto (común para móvil y escritorio)
+  function seleccionarPunto(valor, index, input, display) {
+    // Actualizar UI y arrays de seguimiento
+    input.value = valor;
+    if (display) {
+      display.textContent = valor;
+      display.className = 'fs-1 fw-bold ' + getPuntoClass(valor);
+    }
+    
+    // Marcar esta flecha como seleccionada
+    flechasSeleccionadas[index] = true;
+    valoresFlechas[index] = valor;
+    
+    actualizarEstado();
+  }
+  
+  // Reiniciar todos los valores
+  btnReiniciar.addEventListener('click', function() {
+    const inputs = document.querySelectorAll('input[name="puntos"]');
+    const displays = document.querySelectorAll('[id^="puntosDisplay"]');
+    
+    inputs.forEach(input => input.value = '');
+    displays.forEach(display => {
+      display.textContent = '-';
+      display.className = 'fs-1 fw-bold';
+    });
+    
+    // Reiniciar display móvil
+    puntoDisplayMobile.textContent = '-';
+    puntoDisplayMobile.className = 'fs-1 fw-bold';
+    
+    // Limpiar botones seleccionados
+    puntoBtns.forEach(btn => btn.classList.remove('active'));
+    puntoBtnsMobile.forEach(btn => btn.classList.remove('active'));
+    
+    // Reiniciar arrays
+    flechasSeleccionadas.fill(false);
+    valoresFlechas.fill(null);
+    
+    // Reiniciar a la primera flecha en móvil
+    cambiarFlechaActiva(0);
+    
+    btnGuardar.disabled = true;
+    resumenTirada.style.display = 'none';
+  });
+  
+  // Función para asignar clases según el valor
+  function getPuntoClass(valor) {
+    if (valor >= 9) return 'text-warning';
+    if (valor >= 7) return 'text-danger';
+    if (valor >= 5) return 'text-info';
+    if (valor >= 3) return 'text-dark';
+    return 'text-secondary';
+  }
+  
+  // Actualizar estado del botón guardar y mostrar resumen
+  function actualizarEstado() {
+    const todasSeleccionadas = flechasSeleccionadas.every(sel => sel === true);
+    btnGuardar.disabled = !todasSeleccionadas;
+    
+    if (todasSeleccionadas) {
+      // Mostrar resumen
+      mostrarResumen();
+      resumenTirada.style.display = 'block';
+    } else {
+      resumenTirada.style.display = 'none';
+    }
+  }
+  
+  // Mostrar resumen de puntos seleccionados
+  function mostrarResumen() {
+    resumenPuntos.innerHTML = '';
+    
+    let suma = 0;
+    
+    valoresFlechas.forEach((valor, index) => {
+      suma += valor;
+      
+      const col = document.createElement('div');
+      col.className = 'col-md-2 col-4 text-center mb-2';
+      
+      const badge = document.createElement('span');
+      badge.className = 'badge ' + getBadgeClass(valor);
+      badge.textContent = `F${index + 1}: ${valor}`;
+      
+      col.appendChild(badge);
+      resumenPuntos.appendChild(col);
+    });
+    
+    totalPuntos.textContent = suma;
+    promedioPuntos.textContent = (suma / flechasPorTirada).toFixed(1);
+  }
+  
+  // Función para asignar clases de badge según el valor
+  function getBadgeClass(valor) {
+    if (valor >= 9) return 'bg-warning';
+    if (valor >= 7) return 'bg-danger';
+    if (valor >= 5) return 'bg-info';
+    if (valor >= 3) return 'bg-dark';
+    return 'bg-light text-dark border';
+  }
+});
+</script> 

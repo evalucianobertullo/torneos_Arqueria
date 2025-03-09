@@ -1,0 +1,201 @@
+<div class="container mt-4 mb-5">
+  <div class="row">
+    <!-- Información del Usuario -->
+    <div class="col-12 mb-4">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <div class="d-flex justify-content-between align-items-center">
+            <h2 class="h4 mb-0">
+              <i class="fas fa-user-circle me-2"></i> Perfil del Arquero
+            </h2>
+            <span class="badge bg-light text-primary">
+              <%= user.tipoArco %>
+            </span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <p><strong>Nombre:</strong> <%= user.nombre %> <%= user.apellido %></p>
+              <p><strong>Cédula:</strong> <%= user.cedula %></p>
+              <p><strong>Tipo de Arco:</strong> <%= user.tipoArco %></p>
+            </div>
+            <div class="col-md-6">
+              <p><strong>Torneos Participados:</strong> <%= stats.torneosParticipados %></p>
+              <p><strong>Promedio General:</strong> <%= stats.promedioGeneral %> puntos</p>
+              <p><strong>Mejor Puntuación:</strong> <%= stats.mejorPuntuacion %> puntos</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Podios y Logros -->
+    <div class="col-md-4 mb-4">
+      <div class="card shadow h-100">
+        <div class="card-header bg-warning text-dark">
+          <h3 class="h5 mb-0"><i class="fas fa-trophy me-2"></i> Podios y Logros</h3>
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-4">
+              <div class="display-4 text-warning mb-2">
+                <%= stats.torneosGanados %>
+              </div>
+              <small class="text-muted d-block">1° Lugar</small>
+              <i class="fas fa-medal text-warning"></i>
+            </div>
+            <div class="col-4">
+              <div class="display-4 text-secondary mb-2">
+                <%= stats.segundosLugares %>
+              </div>
+              <small class="text-muted d-block">2° Lugar</small>
+              <i class="fas fa-medal text-secondary"></i>
+            </div>
+            <div class="col-4">
+              <div class="display-4 text-danger mb-2">
+                <%= stats.tercerosLugares %>
+              </div>
+              <small class="text-muted d-block">3° Lugar</small>
+              <i class="fas fa-medal text-danger"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas Generales -->
+    <div class="col-md-8 mb-4">
+      <div class="card shadow h-100">
+        <div class="card-header bg-info text-white">
+          <h3 class="h5 mb-0"><i class="fas fa-chart-pie me-2"></i> Estadísticas Generales</h3>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <h6>Distribución de Puntuaciones</h6>
+              <div class="progress" style="height: 25px;">
+                <% 
+                  const totalFlechas = stats.distribucionPuntos.reduce((a, b) => a + b, 0);
+                  for(let i = 10; i >= 0; i--) {
+                    const porcentaje = totalFlechas > 0 ? (stats.distribucionPuntos[i] / totalFlechas) * 100 : 0;
+                %>
+                  <div class="progress-bar <%= i >= 8 ? 'bg-success' : i >= 5 ? 'bg-info' : 'bg-danger' %>" 
+                       role="progressbar" 
+                       style="width: <%= porcentaje %>%;" 
+                       title="<%= i %> puntos: <%= stats.distribucionPuntos[i] %> flechas (<%= Math.round(porcentaje) %>%)">
+                    <% if (porcentaje > 5) { %>
+                      <%= i %>: <%= Math.round(porcentaje) %>%
+                    <% } %>
+                  </div>
+                <% } %>
+              </div>
+              <div class="small text-muted mt-1">
+                Total: <%= totalFlechas %> flechas disparadas
+              </div>
+            </div>
+            <div class="col-md-6">
+              <h6>Precisión por Puntuación</h6>
+              <div class="table-responsive">
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Puntos</th>
+                      <th class="text-end">Cantidad</th>
+                      <th class="text-end">%</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% for(let i = 10; i >= 8; i--) { %>
+                      <tr>
+                        <td><span class="badge bg-success"><%= i %></span></td>
+                        <td class="text-end"><%= stats.distribucionPuntos[i] %></td>
+                        <td class="text-end">
+                          <%= totalFlechas > 0 ? Math.round((stats.distribucionPuntos[i] / totalFlechas) * 100) : 0 %>%
+                        </td>
+                      </tr>
+                    <% } %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Últimos Torneos -->
+    <div class="col-12 mb-4">
+      <div class="card shadow">
+        <div class="card-header bg-success text-white">
+          <h3 class="h5 mb-0"><i class="fas fa-history me-2"></i> Últimos Torneos</h3>
+        </div>
+        <div class="card-body">
+          <% if (stats.ultimosTorneos.length > 0) { %>
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Torneo</th>
+                    <th>Fecha</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-center">Posición</th>
+                    <th class="text-center">Puntuación</th>
+                    <th class="text-center">Promedio</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% stats.ultimosTorneos.forEach(torneo => { %>
+                    <tr>
+                      <td><%= torneo.nombre %></td>
+                      <td><%= new Date(torneo.fecha).toLocaleDateString('es-ES') %></td>
+                      <td class="text-center">
+                        <span class="badge <%= torneo.estado === 'activo' ? 'bg-success' : 
+                                              torneo.estado === 'preparacion' ? 'bg-warning' : 
+                                              'bg-secondary' %>">
+                          <%= torneo.estado === 'preparacion' ? 'En preparación' :
+                              torneo.estado === 'activo' ? 'Activo' : 'Finalizado' %>
+                        </span>
+                      </td>
+                      <td class="text-center">
+                        <strong class="<%= torneo.posicion === 1 ? 'text-warning' :
+                                         torneo.posicion === 2 ? 'text-secondary' :
+                                         torneo.posicion === 3 ? 'text-danger' : '' %>">
+                          <%= torneo.posicion %>°
+                          <% if (torneo.posicion <= 3) { %>
+                            <i class="fas fa-medal"></i>
+                          <% } %>
+                        </strong>
+                      </td>
+                      <td class="text-center"><%= torneo.puntuacion %></td>
+                      <td class="text-center"><%= torneo.promedio %></td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          <% } else { %>
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i> No has participado en ningún torneo aún.
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 d-flex justify-content-between mb-5">
+      <a href="/dashboard" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Volver al Dashboard
+      </a>
+      <a href="/torneos" class="btn btn-outline-primary">
+        <i class="fas fa-trophy me-2"></i> Ver Torneos Disponibles
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="d-sm-none">
+  <a href="/dashboard" class="btn btn-primary mobile-float-btn">
+    <i class="fas fa-home"></i>
+  </a>
+</div> 

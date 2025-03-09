@@ -1,0 +1,255 @@
+/* Estilos generales */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* Ajustes para dispositivos móviles */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  
+  .card {
+    margin-bottom: 20px;
+    border-radius: 8px;
+  }
+  
+  .form-control, .form-select {
+    font-size: 16px; /* Evita zoom automático en iOS */
+    height: 50px; /* Mayor altura para mejor toque */
+  }
+  
+  .btn {
+    padding: 12px 16px; /* Botones más grandes para mejor toque */
+    font-size: 16px;
+  }
+  
+  .navbar-brand {
+    font-size: 1.3rem;
+  }
+  
+  /* Ajuste para el panel de autenticación en móvil */
+  .auth-card {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .auth-card .card-header {
+    padding: 20px;
+  }
+  
+  .auth-card .card-body {
+    padding: 25px;
+  }
+  
+  /* Separación entre campos de formulario en móvil */
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  /* Estilos para interacción táctil */
+  .touch-active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+  
+  /* Mejorar el feedback visual en inputs con focus */
+  .focused-input {
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+    border-radius: 5px;
+  }
+  
+  /* Indicadores de validación más visibles */
+  .is-invalid {
+    border-color: #dc3545 !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+  }
+  
+  .is-valid {
+    border-color: #198754 !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+  }
+  
+  /* Botones flotantes para móvil */
+  .mobile-float-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    z-index: 1000;
+  }
+}
+
+/* Estilos para tarjetas */
+.card {
+  border-radius: 10px;
+  overflow: hidden;
+  border: none;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  font-weight: bold;
+  padding: 15px 20px;
+}
+
+/* Estilos para botones */
+.btn {
+  border-radius: 5px;
+  padding: 8px 16px;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background-color: #0d6efd;
+}
+
+.btn-success {
+  background-color: #198754;
+}
+
+.btn-warning {
+  background-color: #ffc107;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+}
+
+/* Estilos para formularios */
+.form-control, .form-select {
+  border-radius: 5px;
+  padding: 10px 15px;
+  border: 1px solid #ced4da;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Estilos para tablas */
+.table {
+  vertical-align: middle;
+}
+
+.table th {
+  font-weight: 600;
+  background-color: #f8f9fa;
+}
+
+/* Estilos para badges */
+.badge {
+  padding: 6px 10px;
+  font-weight: 500;
+  border-radius: 5px;
+}
+
+/* Estilos específicos para autenticación */
+.auth-card {
+  border: none;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.auth-title {
+  font-size: 1.5rem;
+  margin-bottom: 0;
+}
+
+.auth-card .card-body {
+  padding: 2rem;
+}
+
+.auth-card .form-label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.auth-footer {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  text-align: center;
+}
+
+.auth-icon {
+  margin-right: 10px;
+}
+
+/* Animaciones sutiles */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.auth-card {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Estilos para iconos en input-group */
+.input-group-text {
+  background-color: #f8f9fa;
+  border-color: #ced4da;
+}
+
+/* Estilo para links en auth-footer */
+.auth-footer a {
+  color: #0d6efd;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.auth-footer a:hover {
+  text-decoration: underline;
+}
+
+/* Estilos para los indicadores del carrusel */
+#carouselActividades .carousel-indicators {
+  bottom: -45px;
+}
+
+#carouselActividades .carousel-indicators button {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #dee2e6;
+  opacity: 0.5;
+  margin: 0 5px;
+  border: none;
+}
+
+#carouselActividades .carousel-indicators button.active {
+  background-color: #0d6efd;
+  opacity: 1;
+}
+
+/* Ajustar el espacio para los indicadores */
+#carouselActividades {
+  padding-bottom: 30px;
+  margin-bottom: -20px;
+}
+
+/* Estilos para el contenedor del carrusel */
+.carousel-inner {
+  overflow: visible;
+} 

@@ -1,0 +1,94 @@
+<div class="container mt-4 mb-5">
+  <div class="row">
+    <div class="col-12 mb-4">
+      <h1 class="h2">
+        <i class="fas fa-plus-circle me-2"></i> Crear Nuevo Entrenamiento
+      </h1>
+      <hr>
+      
+      <% if (mensajeError) { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <i class="fas fa-exclamation-circle me-2"></i> <%= mensajeError %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      <% } %>
+    </div>
+    
+    <div class="col-md-8 mx-auto">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h2 class="h5 mb-0">
+            <i class="fas fa-dumbbell me-2"></i> Datos del Entrenamiento
+          </h2>
+        </div>
+        <div class="card-body">
+          <form action="/entrenamientos/crear" method="POST">
+            <div class="mb-3">
+              <label for="nombre" class="form-label">Nombre del Entrenamiento</label>
+              <input type="text" class="form-control" id="nombre" name="nombre" value="Entrenamiento" required>
+              <div class="form-text">Un nombre para identificar este entrenamiento.</div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="fecha" class="form-label">Fecha</label>
+              <input type="date" class="form-control" id="fecha" name="fecha" value="<%= new Date().toISOString().split('T')[0] %>" required>
+            </div>
+            
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label for="flechasPorTirada" class="form-label">Flechas por Ronda</label>
+                <select class="form-select" id="flechasPorTirada" name="flechasPorTirada" required>
+                  <% for(let i = 3; i <= 12; i++) { %>
+                    <option value="<%= i %>" <%= i === 6 ? 'selected' : '' %>><%= i %> flechas</option>
+                  <% } %>
+                </select>
+              </div>
+              
+              <div class="col-md-4">
+                <label for="rondas" class="form-label">Cantidad de Rondas</label>
+                <select class="form-select" id="rondas" name="rondas" required>
+                  <% for(let i = 1; i <= 20; i++) { %>
+                    <option value="<%= i %>" <%= i === 5 ? 'selected' : '' %>><%= i %> rondas</option>
+                  <% } %>
+                </select>
+              </div>
+              
+              <div class="col-md-4">
+                <label for="distancia" class="form-label">Distancia</label>
+                <select class="form-select" id="distancia" name="distancia" required>
+                  <option value="5m">5 metros</option>
+                  <option value="10m">10 metros</option>
+                  <option value="18m" selected>18 metros</option>
+                  <option value="25m">25 metros</option>
+                  <option value="30m">30 metros</option>
+                  <option value="50m">50 metros</option>
+                  <option value="70m">70 metros</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i> 
+              <strong>Nota:</strong> Una vez creado el entrenamiento, podrás registrar tus tiradas.
+            </div>
+            
+            <div class="d-grid gap-2 mt-4">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-2"></i> Crear Entrenamiento
+              </button>
+              <a href="/entrenamientos" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Cancelar
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="d-sm-none">
+  <a href="/dashboard" class="btn btn-primary mobile-float-btn">
+    <i class="fas fa-home"></i>
+  </a>
+</div> 

@@ -1,0 +1,94 @@
+<div class="row justify-content-center">
+  <div class="col-md-6 col-sm-12">
+    <div class="card shadow auth-card">
+      <div class="card-header bg-primary text-white">
+        <h3 class="auth-title"><i class="fas fa-user-plus auth-icon"></i> Registro de Arquero</h3>
+      </div>
+      <div class="card-body">
+        <form action="/register" method="POST">
+          <!-- Cédula -->
+          <div class="mb-3">
+            <label for="cedula" class="form-label">Cédula</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+              <input type="text" class="form-control" id="cedula" name="cedula" 
+                     placeholder="Cédula de identidad" autocomplete="off" required>
+            </div>
+            <small class="text-muted">Este será tu identificador único para iniciar sesión</small>
+          </div>
+          
+          <!-- Datos personales -->
+          <div class="row mb-3">
+            <div class="col-md-6 mb-3 mb-md-0">
+              <label for="nombre" class="form-label">Nombre</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                <input type="text" class="form-control" id="nombre" name="nombre" 
+                       placeholder="Tu nombre" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label for="apellido" class="form-label">Apellido</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                <input type="text" class="form-control" id="apellido" name="apellido" 
+                       placeholder="Tu apellido" required>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Tipo de Arco -->
+          <div class="mb-3">
+            <label for="tipoArco" class="form-label">Tipo de Arco</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-bullseye"></i></span>
+              <select class="form-select" id="tipoArco" name="tipoArco" required>
+                <option value="" selected disabled>Selecciona un tipo de arco</option>
+                <option value="Recurvo">Recurvo</option>
+                <option value="Compuesto">Compuesto</option>
+                <option value="Tradicional">Tradicional</option>
+                <option value="Longbow">Longbow</option>
+                <option value="Desnudo">Desnudo</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- Contraseña -->
+          <div class="mb-3">
+            <label for="password" class="form-label">Contraseña</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-lock"></i></span>
+              <input type="password" class="form-control" id="password" name="password" 
+                     placeholder="Crea una contraseña segura" required>
+            </div>
+          </div>
+          
+          <!-- Confirmar Contraseña -->
+          <div class="mb-4">
+            <label for="confirmPassword" class="form-label">Confirmar Contraseña</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-lock"></i></span>
+              <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" 
+                     placeholder="Repite la contraseña" required>
+            </div>
+          </div>
+          
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary btn-lg">
+              <i class="fas fa-user-plus me-2"></i> Completar Registro
+            </button>
+          </div>
+        </form>
+      </div>
+      <div class="card-footer auth-footer">
+        <p class="mb-0">¿Ya tienes una cuenta? <a href="/login" class="fw-bold">Inicia Sesión</a></p>
+      </div>
+    </div>
+    
+    <div class="text-center mt-4 mb-5">
+      <a href="/" class="text-decoration-none">
+        <i class="fas fa-arrow-left me-2"></i> Volver a inicio
+      </a>
+    </div>
+  </div>
+</div> 

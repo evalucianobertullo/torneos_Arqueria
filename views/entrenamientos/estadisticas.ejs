@@ -1,0 +1,504 @@
+<div class="container mt-4 mb-5">
+  <div class="row">
+    <div class="col-12 mb-4">
+      <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <h1 class="h2">
+          <i class="fas fa-chart-line me-2"></i> Estadísticas de Entrenamiento
+        </h1>
+        <span class="badge bg-primary fs-6 px-3 py-2"><%= entrenamiento.nombre %></span>
+      </div>
+      <hr>
+      
+      <% if (mensajeExito) { %>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <i class="fas fa-check-circle me-2"></i> <%= mensajeExito %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      <% } %>
+      
+      <% if (mensajeError) { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <i class="fas fa-exclamation-circle me-2"></i> <%= mensajeError %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      <% } %>
+    </div>
+    
+    <% if (entrenamiento.tiradas.length === 0) { %>
+      <div class="col-12">
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i> No hay tiradas registradas en este entrenamiento.
+          <% if (entrenamiento.estado === 'activo') { %>
+            <div class="d-grid gap-2 mt-3">
+              <a href="/entrenamientos/<%= entrenamiento._id %>/tiradas" class="btn btn-success">
+                <i class="fas fa-bullseye me-2"></i> Registrar mi primera tirada
+              </a>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    <% } else { %>
+      <!-- Resumen general -->
+      <div class="col-md-4 mb-4">
+        <div class="card shadow">
+          <div class="card-header bg-primary text-white">
+            <h3 class="h5 mb-0"><i class="fas fa-info-circle me-2"></i> Resumen</h3>
+          </div>
+          <div class="card-body">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item d-flex justify-content-between">
+                <span><i class="fas fa-arrows-alt-h me-2"></i> Distancia:</span>
+                <strong><%= entrenamiento.distancia %></strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span><i class="fas fa-calendar-alt me-2"></i> Fecha:</span>
+                <strong><%= formatearFecha(entrenamiento.fecha) %></strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span><i class="fas fa-check-circle me-2"></i> Estado:</span>
+                <strong class="<%= entrenamiento.estado === 'activo' ? 'text-success' : 'text-secondary' %>">
+                  <%= entrenamiento.estado === 'activo' ? 'En curso' : 'Finalizado' %>
+                </strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span><i class="fas fa-redo me-2"></i> Progreso:</span>
+                <strong><%= entrenamiento.tiradas.length %> / <%= entrenamiento.rondas %> rondas</strong>
+              </li>
+            </ul>
+            
+            <div class="progress mt-3 mb-2" style="height: 10px;">
+              <div class="progress-bar bg-success" 
+                   role="progressbar" 
+                   style="width: <%= (entrenamiento.tiradas.length / entrenamiento.rondas) * 100 %>%;" 
+                   aria-valuenow="<%= (entrenamiento.tiradas.length / entrenamiento.rondas) * 100 %>" 
+                   aria-valuemin="0" 
+                   aria-valuemax="100"></div>
+            </div>
+            <p class="small text-muted text-center">
+              <%= Math.round((entrenamiento.tiradas.length / entrenamiento.rondas) * 100) %>% completado
+            </p>
+          </div>
+        </div>
+        
+        <!-- Métricas principales -->
+        <div class="card shadow mt-3">
+          <div class="card-header bg-info text-white">
+            <h3 class="h5 mb-0"><i class="fas fa-award me-2"></i> Métricas Principales</h3>
+          </div>
+          <div class="card-body">
+            <div class="row text-center">
+              <div class="col-6 mb-3">
+                <div class="p-2 border rounded bg-light">
+                  <div class="small text-muted">Puntuación Total</div>
+                  <div class="h3 mb-0 text-primary"><%= stats.puntuacionTotal %></div>
+                </div>
+              </div>
+              <div class="col-6 mb-3">
+                <div class="p-2 border rounded bg-light">
+                  <div class="small text-muted">Prom. Ronda</div>
+                  <div class="h3 mb-0 text-info"><%= stats.promedioPorRonda %></div>
+                </div>
+              </div>
+              <div class="col-6 mb-3">
+                <div class="p-2 border rounded bg-light">
+                  <div class="small text-muted">Prom. Flecha</div>
+                  <div class="h3 mb-0 text-success"><%= stats.promedioPorFlecha %></div>
+                </div>
+              </div>
+              <div class="col-6 mb-3">
+                <div class="p-2 border rounded bg-light">
+                  <div class="small text-muted">Precisión</div>
+                  <div class="h3 mb-0 text-warning"><%= stats.porcentajePrecision %>%</div>
+                </div>
+              </div>
+            </div>
+            
+            <hr>
+            
+            <div class="row">
+              <div class="col-12">
+                <h6><i class="fas fa-trophy text-warning me-2"></i> Mejor ronda</h6>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <div>
+                    <span class="badge bg-warning fs-4 me-2"><%= stats.mejorTirada.total %></span> 
+                    <small class="text-muted">Ronda <%= stats.mejorTirada.ronda %></small>
+                  </div>
+                  <small class="text-muted">
+                    <% stats.mejorTirada.puntos.forEach((punto, idx) => { %>
+                      <span class="<%= punto >= 9 ? 'text-warning' : punto >= 7 ? 'text-danger' : punto >= 5 ? 'text-info' : punto >= 3 ? 'text-dark' : 'text-secondary' %>">
+                        <%= punto %><%= idx < stats.mejorTirada.puntos.length - 1 ? ', ' : '' %>
+                      </span>
+                    <% }) %>
+                  </small>
+                </div>
+                
+                <h6><i class="fas fa-thumbs-down text-danger me-2"></i> Peor ronda</h6>
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <span class="badge bg-secondary fs-4 me-2"><%= stats.peorTirada.total %></span> 
+                    <small class="text-muted">Ronda <%= stats.peorTirada.ronda %></small>
+                  </div>
+                  <small class="text-muted">
+                    <% stats.peorTirada.puntos.forEach((punto, idx) => { %>
+                      <span class="<%= punto >= 9 ? 'text-warning' : punto >= 7 ? 'text-danger' : punto >= 5 ? 'text-info' : punto >= 3 ? 'text-dark' : 'text-secondary' %>">
+                        <%= punto %><%= idx < stats.peorTirada.puntos.length - 1 ? ', ' : '' %>
+                      </span>
+                    <% }) %>
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Gráficos y estadísticas detalladas -->
+      <div class="col-md-8 mb-4">
+        <div class="card shadow">
+          <div class="card-header bg-primary text-white">
+            <h3 class="h5 mb-0"><i class="fas fa-chart-pie me-2"></i> Análisis de Desempeño</h3>
+          </div>
+          <div class="card-body">
+            <!-- Pestañas para diferentes estadísticas -->
+            <ul class="nav nav-tabs" id="statsTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="distribucion-tab" data-bs-toggle="tab" 
+                        data-bs-target="#distribucion" type="button" role="tab" 
+                        aria-controls="distribucion" aria-selected="true">
+                  Distribución
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="progresion-tab" data-bs-toggle="tab" 
+                        data-bs-target="#progresion" type="button" role="tab" 
+                        aria-controls="progresion" aria-selected="false">
+                  Progresión
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="precision-tab" data-bs-toggle="tab" 
+                        data-bs-target="#precision" type="button" role="tab" 
+                        aria-controls="precision" aria-selected="false">
+                  Precisión
+                </button>
+              </li>
+            </ul>
+            
+            <div class="tab-content pt-3" id="statsTabsContent">
+              <!-- TAB: Distribución de puntuaciones -->
+              <div class="tab-pane fade show active" id="distribucion" role="tabpanel" aria-labelledby="distribucion-tab">
+                <h6 class="text-center mb-3">Distribución de Puntuaciones</h6>
+                <canvas id="distribucionChart" height="200"></canvas>
+                
+                <div class="table-responsive mt-3">
+                  <table class="table table-sm">
+                    <thead>
+                      <tr>
+                        <th class="text-center">Puntuación</th>
+                        <% for(let i = 10; i >= 0; i--) { %>
+                          <th class="text-center <%= i >= 9 ? 'bg-warning' : i >= 7 ? 'bg-danger text-white' : i >= 5 ? 'bg-info text-white' : i >= 3 ? 'bg-dark text-white' : 'bg-light' %>">
+                            <%= i %>
+                          </th>
+                        <% } %>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th class="text-center">Cantidad</th>
+                        <% for(let i = 10; i >= 0; i--) { %>
+                          <td class="text-center">
+                            <strong><%= stats.distribucionPuntos[i] || 0 %></strong>
+                          </td>
+                        <% } %>
+                      </tr>
+                      <tr>
+                        <th class="text-center">Porcentaje</th>
+                        <% for(let i = 10; i >= 0; i--) { %>
+                          <td class="text-center">
+                            <%= ((stats.distribucionPuntos[i] || 0) / stats.totalFlechas * 100).toFixed(1) %>%
+                          </td>
+                        <% } %>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                
+                <p class="small text-muted text-center mt-2">
+                  Total: <%= stats.totalFlechas %> flechas disparadas
+                </p>
+              </div>
+              
+              <!-- TAB: Progresión por ronda -->
+              <div class="tab-pane fade" id="progresion" role="tabpanel" aria-labelledby="progresion-tab">
+                <h6 class="text-center mb-3">Evolución por Ronda</h6>
+                <canvas id="progresionChart" height="200"></canvas>
+                
+                <div class="small text-muted mt-3">
+                  <i class="fas fa-info-circle me-1"></i> 
+                  Este gráfico muestra tu progresión a lo largo de todas las rondas. La línea punteada representa el promedio general.
+                </div>
+                
+                <% if (stats.tendencia > 0) { %>
+                  <div class="alert alert-success mt-3">
+                    <i class="fas fa-arrow-up me-2"></i>
+                    <strong>¡Tendencia positiva!</strong> Tu desempeño está mejorando con un incremento promedio de 
+                    <%= stats.tendencia.toFixed(1) %> puntos por ronda.
+                  </div>
+                <% } else if (stats.tendencia < 0) { %>
+                  <div class="alert alert-warning mt-3">
+                    <i class="fas fa-arrow-down me-2"></i>
+                    <strong>Tendencia negativa.</strong> Tu desempeño está disminuyendo un promedio de 
+                    <%= Math.abs(stats.tendencia).toFixed(1) %> puntos por ronda. ¡Revisa tu técnica!
+                  </div>
+                <% } else { %>
+                  <div class="alert alert-info mt-3">
+                    <i class="fas fa-equals me-2"></i>
+                    <strong>Desempeño estable.</strong> Estás manteniendo una puntuación consistente entre rondas.
+                  </div>
+                <% } %>
+              </div>
+              
+              <!-- TAB: Precisión y análisis -->
+              <div class="tab-pane fade" id="precision" role="tabpanel" aria-labelledby="precision-tab">
+                <h6 class="text-center mb-3">Análisis de Precisión</h6>
+                <canvas id="precisionChart" height="200"></canvas>
+                
+                <div class="row mt-4">
+                  <div class="col-md-6">
+                    <div class="card bg-light">
+                      <div class="card-body p-2">
+                        <h6 class="card-title">Precisión por Categoría</h6>
+                        <ul class="list-group list-group-flush">
+                          <li class="list-group-item d-flex justify-content-between align-items-center p-2">
+                            <span class="text-warning">Excelente (9-10)</span>
+                            <span class="badge bg-warning">
+                              <%= stats.porcentajesPorCategoria.excelente %>%
+                            </span>
+                          </li>
+                          <li class="list-group-item d-flex justify-content-between align-items-center p-2">
+                            <span class="text-danger">Bueno (7-8)</span>
+                            <span class="badge bg-danger">
+                              <%= stats.porcentajesPorCategoria.bueno %>%
+                            </span>
+                          </li>
+                          <li class="list-group-item d-flex justify-content-between align-items-center p-2">
+                            <span class="text-info">Regular (5-6)</span>
+                            <span class="badge bg-info">
+                              <%= stats.porcentajesPorCategoria.regular %>%
+                            </span>
+                          </li>
+                          <li class="list-group-item d-flex justify-content-between align-items-center p-2">
+                            <span class="text-dark">Bajo (3-4)</span>
+                            <span class="badge bg-dark">
+                              <%= stats.porcentajesPorCategoria.bajo %>%
+                            </span>
+                          </li>
+                          <li class="list-group-item d-flex justify-content-between align-items-center p-2">
+                            <span class="text-secondary">Fallo (0-2)</span>
+                            <span class="badge bg-secondary">
+                              <%= stats.porcentajesPorCategoria.fallo %>%
+                            </span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="card bg-light">
+                      <div class="card-body p-2">
+                        <h6 class="card-title">Consistencia</h6>
+                        <div class="mt-2">
+                          <div class="d-flex justify-content-between align-items-center mb-1">
+                            <small>Muy baja</small>
+                            <small>Excelente</small>
+                          </div>
+                          <div class="progress" style="height: 10px;">
+                            <% const consistenciaWidth = 100 - Math.min(100, Math.max(0, stats.desviacionEstandar * 10)); %>
+                            <div class="progress-bar 
+                              <%= consistenciaWidth >= 80 ? 'bg-success' : 
+                                 consistenciaWidth >= 60 ? 'bg-info' : 
+                                 consistenciaWidth >= 40 ? 'bg-warning' : 'bg-danger' %>" 
+                              role="progressbar" 
+                              style="width: <%= consistenciaWidth %>%;" 
+                              aria-valuenow="<%= consistenciaWidth %>" 
+                              aria-valuemin="0" 
+                              aria-valuemax="100"></div>
+                          </div>
+                          <div class="d-flex justify-content-between align-items-center mt-1">
+                            <small>Alta variabilidad</small>
+                            <small>Alta precisión</small>
+                          </div>
+                        </div>
+                        <p class="small text-muted mt-3">
+                          <strong>Desviación estándar:</strong> ± <%= stats.desviacionEstandar.toFixed(2) %> puntos 
+                          <i class="fas fa-info-circle" data-bs-toggle="tooltip" title="Menor desviación = Mayor consistencia"></i>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% } %>
+    
+    <!-- Botones de navegación -->
+    <div class="col-12 d-flex justify-content-between">
+      <a href="/entrenamientos/<%= entrenamiento._id %>" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Volver al Entrenamiento
+      </a>
+      <% if (entrenamiento.estado === 'activo') { %>
+        <a href="/entrenamientos/<%= entrenamiento._id %>/tiradas" class="btn btn-success">
+          <i class="fas fa-bullseye me-2"></i> Registrar Tiradas
+        </a>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<div class="d-sm-none">
+  <a href="/dashboard" class="btn btn-primary mobile-float-btn">
+    <i class="fas fa-home"></i>
+  </a>
+</div>
+
+<!-- Script para gráficos -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Inicializar tooltips
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+  
+  // Datos para gráficos
+  const stats = <%- JSON.stringify(stats) %>;
+  
+  // Gráfico de distribución
+  const distribucionCtx = document.getElementById('distribucionChart');
+  if (distribucionCtx) {
+    new Chart(distribucionCtx, {
+      type: 'bar',
+      data: {
+        labels: Array.from({length: 11}, (_, i) => i),
+        datasets: [{
+          label: 'Frecuencia',
+          data: Array.from({length: 11}, (_, i) => stats.distribucionPuntos[i] || 0),
+          backgroundColor: Array.from({length: 11}, (_, i) => 
+            i >= 9 ? '#ffc107' :  // amarillo para 9-10
+            i >= 7 ? '#dc3545' :  // rojo para 7-8
+            i >= 5 ? '#17a2b8' :  // azul para 5-6
+            i >= 3 ? '#343a40' :  // negro para 3-4
+            '#f8f9fa'             // blanco para 0-2
+          )
+        }]
+      },
+      options: {
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Cantidad de flechas'
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Puntuación'
+            }
+          }
+        }
+      }
+    });
+  }
+  
+  // Gráfico de progresión
+  const progresionCtx = document.getElementById('progresionChart');
+  if (progresionCtx && stats.tiradas && stats.tiradas.length > 0) {
+    const tiradasOrdenadas = [...stats.tiradas].sort((a, b) => a.ronda - b.ronda);
+    
+    new Chart(progresionCtx, {
+      type: 'line',
+      data: {
+        labels: tiradasOrdenadas.map(t => `Ronda ${t.ronda}`),
+        datasets: [
+          {
+            label: 'Puntuación',
+            data: tiradasOrdenadas.map(t => t.total),
+            borderColor: '#0d6efd',
+            tension: 0.1,
+            fill: false
+          },
+          {
+            label: 'Promedio',
+            data: Array(tiradasOrdenadas.length).fill(stats.promedioPorRonda),
+            borderColor: '#6c757d',
+            borderDash: [5, 5],
+            pointRadius: 0,
+            fill: false
+          }
+        ]
+      },
+      options: {
+        scales: {
+          y: {
+            min: 0,
+            suggestedMax: Math.max(...tiradasOrdenadas.map(t => t.total)) + 5
+          }
+        }
+      }
+    });
+  }
+  
+  // Gráfico de precisión
+  const precisionCtx = document.getElementById('precisionChart');
+  if (precisionCtx) {
+    new Chart(precisionCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Excelente (9-10)', 'Bueno (7-8)', 'Regular (5-6)', 'Bajo (3-4)', 'Fallo (0-2)'],
+        datasets: [{
+          data: [
+            stats.porcentajesPorCategoria.excelente,
+            stats.porcentajesPorCategoria.bueno,
+            stats.porcentajesPorCategoria.regular,
+            stats.porcentajesPorCategoria.bajo,
+            stats.porcentajesPorCategoria.fallo
+          ],
+          backgroundColor: [
+            '#ffc107', // amarillo
+            '#dc3545', // rojo
+            '#17a2b8', // azul
+            '#343a40', // negro
+            '#f8f9fa'  // blanco
+          ],
+          borderColor: '#fff',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.raw || 0;
+                return `${label}: ${value}%`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+});
+</script> 

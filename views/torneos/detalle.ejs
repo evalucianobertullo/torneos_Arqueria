@@ -1,0 +1,244 @@
+<div class="row">
+  <!-- Información del torneo -->
+  <div class="col-md-12 mb-4">
+    <div class="card shadow">
+      <div class="card-header d-flex justify-content-between align-items-center
+        <%= torneo.estado === 'preparacion' ? 'bg-warning text-dark' : 
+          torneo.estado === 'activo' ? 'bg-success text-white' : 'bg-secondary text-white' %>">
+        <h2 class="h4 mb-0">
+          <i class="<%= torneo.estado === 'preparacion' ? 'fas fa-clock' : 
+                      torneo.estado === 'activo' ? 'fas fa-play' : 'fas fa-flag-checkered' %> me-2"></i>
+          <%= torneo.nombre %>
+        </h2>
+        <span class="badge <%= torneo.estado === 'preparacion' ? 'bg-dark' : 
+                              torneo.estado === 'activo' ? 'bg-light text-success' : 'bg-light text-secondary' %>">
+          <%= torneo.estado === 'preparacion' ? 'En preparación' : 
+              torneo.estado === 'activo' ? 'Activo' : 'Finalizado' %>
+        </span>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Creador:</strong> <%= torneo.creador ? `${torneo.creador.nombre} ${torneo.creador.apellido}` : 'Desconocido' %></p>
+            <p><strong>Fecha:</strong> <%= new Date(torneo.fecha).toLocaleDateString('es-ES') %></p>
+            <p><strong>Creado:</strong> <%= new Date(torneo.createdAt).toLocaleDateString('es-ES') %></p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Distancia:</strong> <%= torneo.distancia %></p>
+            <p><strong>Flechas por Ronda:</strong> <%= torneo.flechasPorTirada %></p>
+            <p><strong>Rondas:</strong> <%= torneo.rondas %></p>
+            <p><strong>Participantes:</strong> <%= torneo.participantes ? torneo.participantes.length : 0 %></p>
+          </div>
+        </div>
+        
+        <% if (esCreador && torneo.estado === 'preparacion') { %>
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+            <a href="/torneos/<%= torneo._id %>/iniciar" class="btn btn-success"
+              onclick="return confirm('¿Estás seguro de que deseas iniciar el torneo? No podrás agregar más participantes después.')">
+              <i class="fas fa-play me-2"></i> Iniciar Torneo
+            </a>
+            
+            <a href="/torneos/<%= torneo._id %>/eliminar" class="btn btn-danger ms-2"
+              onclick="return confirm('¿Estás seguro de que deseas eliminar este torneo? Esta acción no se puede deshacer y se perderán todos los datos asociados.')">
+              <i class="fas fa-trash-alt me-2"></i> Eliminar Torneo
+            </a>
+          </div>
+        <% } else if ((user && user.isAdmin) || (esCreador && torneo.estado === 'finalizado')) { %>
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+            <a href="/torneos/<%= torneo._id %>/eliminar" class="btn btn-danger"
+              onclick="return confirm('¿Estás seguro de que deseas eliminar este torneo? Esta acción no se puede deshacer y se perderán todos los datos asociados.')">
+              <i class="fas fa-trash-alt me-2"></i> Eliminar Torneo
+            </a>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de participantes -->
+  <div class="col-md-12 mb-4">
+    <div class="card shadow">
+      <div class="card-header bg-primary text-white">
+        <h3 class="h5 mb-0"><i class="fas fa-users me-2"></i> Participantes</h3>
+      </div>
+      <div class="card-body">
+        <% if (torneo.participantes && torneo.participantes.length > 0) { %>
+          <div class="table-responsive">
+            <table class="table table-striped table-hover">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Cédula</th>
+                  <th>Tipo de Arco</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% torneo.participantes.forEach(participante => { %>
+                  <tr>
+                    <td>
+                      <%= participante.usuario ? `${participante.usuario.nombre} ${participante.usuario.apellido}` : 'Desconocido' %>
+                    </td>
+                    <td><%= participante.usuario ? participante.usuario.cedula : '-' %></td>
+                    <td><%= participante.usuario ? participante.usuario.tipoArco : '-' %></td>
+                    <td>
+                      <span class="badge bg-<%= participante.estado === 'aceptado' ? 'success' : 
+                                              participante.estado === 'rechazado' ? 'danger' : 'warning' %>">
+                        <%= participante.estado === 'aceptado' ? 'Aceptado' : 
+                          participante.estado === 'rechazado' ? 'Rechazado' : 'Pendiente' %>
+                      </span>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } else { %>
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> Aún no hay participantes en este torneo.
+          </div>
+        <% } %>
+        
+        <!-- Formulario para agregar participantes (solo visible para el creador y en estado de preparación) -->
+        <% if (esCreador && torneo.estado === 'preparacion') { %>
+          <hr>
+          <h4 class="h6 mb-3">Agregar participante</h4>
+          
+          <% if (typeof usuariosDisponibles !== 'undefined' && usuariosDisponibles.length > 0) { %>
+            <form action="/torneos/agregar-participante" method="POST" class="row g-3">
+              <input type="hidden" name="torneoId" value="<%= torneo._id %>">
+              <div class="col-md-8">
+                <select class="form-select" name="usuarioId" required>
+                  <option value="" selected disabled>Seleccionar arquero...</option>
+                  <% usuariosDisponibles.forEach(usuario => { %>
+                    <option value="<%= usuario._id %>">
+                      <%= usuario.nombre %> <%= usuario.apellido %> (<%= usuario.cedula %>)
+                    </option>
+                  <% }) %>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">
+                  <i class="fas fa-user-plus me-2"></i> Agregar
+                </button>
+              </div>
+            </form>
+          <% } else { %>
+            <div class="alert alert-warning mt-3">
+              <i class="fas fa-exclamation-circle me-2"></i> No hay más arqueros disponibles para agregar al torneo.
+            </div>
+          <% } %>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Sección para iniciar torneo, sólo visible si es el creador y está en preparación -->
+  <% if (esCreador && torneo.estado === 'preparacion') { %>
+    <div class="col-md-12 mb-4">
+      <div class="card shadow border-warning">
+        <div class="card-header bg-warning text-dark">
+          <h3 class="h5 mb-0"><i class="fas fa-play-circle me-2"></i> Iniciar Competencia</h3>
+        </div>
+        <div class="card-body">
+          <p>Una vez iniciado el torneo:</p>
+          <ul>
+            <li>No se podrán agregar más participantes</li>
+            <li>Se habilitará el registro de tiradas para cada participante</li>
+            <li>La clasificación se actualizará automáticamente</li>
+          </ul>
+          
+          <% if (torneo.participantes && torneo.participantes.length >= 2) { %>
+            <div class="d-grid gap-2 col-md-6 mx-auto">
+              <a href="/torneos/<%= torneo._id %>/iniciar" class="btn btn-warning"
+                onclick="return confirm('¿Estás seguro de que deseas iniciar el torneo? Esta acción no se puede deshacer.')">
+                <i class="fas fa-play me-2"></i> Iniciar Torneo
+              </a>
+            </div>
+          <% } else { %>
+            <div class="alert alert-danger">
+              <i class="fas fa-exclamation-triangle me-2"></i> Se necesitan al menos 2 participantes para iniciar el torneo.
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  <% } %>
+  
+  <!-- Sección para la competencia (solo visible si el torneo está activo) -->
+  <% if (torneo.estado === 'activo') { %>
+    <div class="col-md-12 mb-4">
+      <div class="card shadow border-success">
+        <div class="card-header bg-success text-white">
+          <h3 class="h5 mb-0"><i class="fas fa-bullseye me-2"></i> Competencia en Curso</h3>
+        </div>
+        <div class="card-body">
+          <p class="mb-4">El torneo está activo. Los participantes pueden registrar sus puntuaciones.</p>
+          
+          <div class="d-grid gap-2 col-md-6 mx-auto">
+            <a href="/torneos/<%= torneo._id %>/tiradas" class="btn btn-outline-success">
+              <i class="fas fa-bullseye me-2"></i> Ir al Registro de Tiradas
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% } %>
+  
+  <!-- Sección para torneos finalizados -->
+  <% if (torneo.estado === 'finalizado') { %>
+    <div class="col-md-12 mb-4">
+      <div class="card shadow border-secondary">
+        <div class="card-header bg-secondary text-white">
+          <h3 class="h5 mb-0"><i class="fas fa-flag-checkered me-2"></i> Torneo Finalizado</h3>
+        </div>
+        <div class="card-body">
+          <p>Este torneo ha finalizado. Puedes ver los resultados finales.</p>
+          
+          <% 
+            // Ordenar participantes por puntuación (de mayor a menor)
+            const participantesOrdenados = torneo.participantes
+              .filter(p => p.estado === 'aceptado')
+              .sort((a, b) => b.puntuacion - a.puntuacion);
+              
+            // Obtener el ganador (primer lugar)
+            const ganador = participantesOrdenados.length > 0 ? participantesOrdenados[0] : null;
+          %>
+          
+          <% if (ganador) { %>
+            <div class="alert alert-success text-center my-3">
+              <h4 class="alert-heading"><i class="fas fa-trophy me-2"></i> Ganador</h4>
+              <strong class="h5"><%= ganador.usuario ? `${ganador.usuario.nombre} ${ganador.usuario.apellido}` : 'Desconocido' %></strong>
+              <p class="mb-0">
+                <span class="badge bg-success"><%= ganador.puntuacion %> puntos</span>
+                <small class="d-block mt-1"><%= ganador.usuario ? ganador.usuario.tipoArco : '-' %></small>
+              </p>
+            </div>
+            
+            <div class="d-grid gap-2 col-md-6 mx-auto mt-3">
+              <a href="/torneos/<%= torneo._id %>/tiradas" class="btn btn-outline-secondary">
+                <i class="fas fa-chart-bar me-2"></i> Ver Resultados Completos
+              </a>
+            </div>
+          <% } else { %>
+            <div class="alert alert-warning">
+              <i class="fas fa-exclamation-circle me-2"></i> No hay suficientes participantes para determinar un ganador.
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  <% } %>
+  
+  <div class="col-12 text-center mb-5">
+    <a href="/torneos" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-2"></i> Volver a Torneos
+    </a>
+  </div>
+</div>
+
+<div class="d-sm-none">
+  <a href="/dashboard" class="btn btn-primary mobile-float-btn">
+    <i class="fas fa-home"></i>
+  </a>
+</div> 

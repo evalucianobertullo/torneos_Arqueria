@@ -1,0 +1,64 @@
+Prompt:
+
+Quiero una app web en Node.js con MongoDB, optimizada para dispositivos móviles.
+
+Fase 1: Autenticación y gestión de usuarios
+Implementar un sistema de usuarios (arqueros) con los siguientes datos:
+Cédula (única, requerida).
+Nombre y apellido.
+Tipo de arco.
+Los usuarios pueden registrarse e iniciar sesión.
+Un usuario administrador se crea por defecto.
+Solo el usuario administrador puede desactivar a otros usuarios.
+
+Fase 2: Creación de torneos
+Un arquero puede crear un torneo con los siguientes datos:
+Nombre (por defecto: "Torneo").
+Fecha (por defecto: la actual).
+Cantidad de flechas por tirada.
+Cantidad de rondas.
+El creador del torneo también puede registrar a otros arqueros en su torneo.
+
+Fase 3: Registro de participantes
+Los usuarios pueden inscribirse en torneos activos.
+Solo el creador del torneo puede dar inicio a la competencia, bloqueando el registro de nuevos participantes.
+
+
+Fase 4: Desarrollo del torneo
+Una vez iniciado el torneo:
+Se activa la sección de registro de tiradas.
+Cada arquero tiene su sección para ingresar puntajes por flecha (0 a 10).
+Se registran todas las rondas y flechas según la configuración del torneo.
+
+Fase 4.5: Estadísticas por torneo
+Después de que el registro de tiradas esté funcionando, puedes decirle a Cursor:
+
+"Agrega un sistema de estadísticas para cada torneo, donde se pueda ver el desempeño de cada arquero en ese torneo."
+
+Esto incluiría:
+✅ Puntaje promedio por ronda para cada arquero.
+✅ Mejor y peor tirada dentro del torneo.
+✅ Porcentaje de aciertos (ejemplo: cuántas veces sacó 10, 9, 8, etc.).
+
+
+
+Fase 5: Resultados y clasificación
+Se muestra la puntuación total de cada arquero.
+Los arqueros se ordenan automáticamente según su puntaje.
+Se destaca al ganador (mayor puntaje).
+
+Fase 5.5: Estadísticas generales del usuario
+Una vez que los torneos registran estadísticas, puedes agregar una sección global:
+
+"Crea una sección de estadísticas personales para cada usuario, basada en su historial de torneos."
+
+Esto incluiría:
+✅ Historial de torneos jugados y posiciones obtenidas.
+✅ Promedio de puntajes en todos sus torneos.
+✅ Cantidad de primeros, segundos y terceros lugares obtenidos.
+✅ Progreso a lo largo del tiempo con gráficos de rendimiento.
+
+Extras y consideraciones
+Interfaz pensada para móvil, con navegación intuitiva.
+Diseño claro y funcional para registro de tiradas y visualización de resultados.
+Estructura escalable para futuros módulos o mejoras.

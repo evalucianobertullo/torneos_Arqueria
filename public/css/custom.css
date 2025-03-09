@@ -1,0 +1,51 @@
+
+/* Estilos personalizados generados automáticamente */
+:root {
+  --navbar-bg: #180205;
+  --primary-color: #cd1821;
+  --secondary-color: #7c0438;
+  --success-color: #198754;
+  --warning-color: #ffc107;
+  --card-border-radius: 10;
+  --button-border-radius: 5;
+}
+
+.navbar {
+  background-color: var(--navbar-bg) !important;
+}
+
+.btn-primary {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.btn-outline-primary {
+  color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+.card {
+  border-radius: var(--card-border-radius) !important;
+}
+
+.btn {
+  border-radius: var(--button-border-radius) !important;
+}
+
+/* Otros estilos personalizados */
+.bg-primary {
+  background-color: var(--primary-color) !important;
+}
+
+.text-primary {
+  color: var(--primary-color) !important;
+}
+
+.border-primary {
+  border-color: var(--primary-color) !important;
+}

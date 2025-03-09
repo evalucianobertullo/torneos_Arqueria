@@ -1,0 +1,265 @@
+<div class="container mt-4 mb-5">
+  <div class="row">
+    <div class="col-12 mb-4">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <div class="d-flex justify-content-between align-items-center">
+            <h2 class="h4 mb-0">
+              <i class="fas fa-trophy me-2"></i> Clasificación - <%= torneo.nombre %>
+            </h2>
+            <span class="badge bg-light text-primary">
+              <%= torneo.estado === 'preparacion' 
+                ? 'En preparación' 
+                : torneo.estado === 'activo' 
+                  ? 'Activo' 
+                  : 'Finalizado' %>
+            </span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <p><strong>Fecha:</strong> <%= new Date(torneo.fecha).toLocaleDateString('es-ES') %></p>
+              <p><strong>Distancia:</strong> <%= torneo.distancia %></p>
+              <p><strong>Creador:</strong> <%= torneo.creador.nombre %> <%= torneo.creador.apellido %></p>
+            </div>
+            <div class="col-md-6">
+              <p><strong>Flechas por Ronda:</strong> <%= torneo.flechasPorTirada %></p>
+              <p><strong>Rondas:</strong> <%= torneo.rondas %></p>
+              <p><strong>Participantes:</strong> <%= participantes.length %></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de clasificación -->
+    <div class="col-12 mb-4">
+      <div class="card shadow">
+        <div class="card-header bg-success text-white">
+          <h3 class="h5 mb-0"><i class="fas fa-list-ol me-2"></i> Tabla de Clasificación</h3>
+        </div>
+        <div class="card-body">
+          <% if (participantes && participantes.length > 0) { %>
+            <div class="table-responsive">
+              <table class="table table-hover table-bordered">
+                <thead class="table-light">
+                  <tr>
+                    <th class="text-center" style="width: 50px">Pos.</th>
+                    <th>Arquero</th>
+                    <th>Tipo de Arco</th>
+                    <th class="text-center">Puntuación Total</th>
+                    <th class="text-center">Rondas Completadas</th>
+                    <th class="text-center">Promedio por Ronda</th>
+                    <th class="text-center">Mejor Ronda</th>
+                    <th class="text-center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% participantes
+                    .filter(p => p.estado === 'aceptado')
+                    .sort((a, b) => b.puntuacion - a.puntuacion)
+                    .forEach((participante, index) => { 
+                      // Calcular mejor tirada
+                      let mejorTirada = { total: 0, ronda: null };
+                      participante.tiradas.forEach(tirada => {
+                        if (tirada.total > mejorTirada.total) {
+                          mejorTirada = tirada;
+                        }
+                      });
+                  %>
+                    <tr class="<%= index === 0 ? 'table-warning' : index === 1 ? 'table-light' : index === 2 ? 'table-light' : '' %>">
+                      <td class="text-center">
+                        <strong class="<%= index === 0 ? 'text-warning' : index === 1 ? 'text-secondary' : index === 2 ? 'text-danger' : '' %>">
+                          <%= index + 1 %>º
+                          <% if (index === 0) { %>
+                            <i class="fas fa-crown"></i>
+                          <% } %>
+                        </strong>
+                      </td>
+                      <td>
+                        <strong>
+                          <%= participante.usuario.nombre %> <%= participante.usuario.apellido %>
+                        </strong>
+                        <small class="d-block text-muted">
+                          <i class="fas fa-id-card me-1"></i> <%= participante.usuario.cedula %>
+                        </small>
+                      </td>
+                      <td><%= participante.usuario.tipoArco %></td>
+                      <td class="text-center">
+                        <span class="badge bg-success fs-6"><%= participante.puntuacion %></span>
+                      </td>
+                      <td class="text-center">
+                        <div class="progress" style="height: 25px;">
+                          <% const porcentajeCompletado = (participante.tiradas.length / torneo.rondas) * 100; %>
+                          <div class="progress-bar bg-info" 
+                               role="progressbar" 
+                               style="width: <%= porcentajeCompletado %>%;" 
+                               aria-valuenow="<%= porcentajeCompletado %>" 
+                               aria-valuemin="0" 
+                               aria-valuemax="100">
+                            <%= participante.tiradas.length %> / <%= torneo.rondas %>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="text-center">
+                        <%= participante.tiradas.length > 0 
+                            ? (participante.puntuacion / participante.tiradas.length).toFixed(1) 
+                            : 0 %>
+                      </td>
+                      <td class="text-center">
+                        <% if (mejorTirada.ronda) { %>
+                          <span class="badge bg-primary">
+                            <%= mejorTirada.total %> pts (R<%= mejorTirada.ronda %>)
+                          </span>
+                        <% } else { %>
+                          -
+                        <% } %>
+                      </td>
+                      <td class="text-center">
+                        <a href="/torneos/<%= torneo._id %>/participante/<%= participante.usuario._id %>/detalle" 
+                           class="btn btn-sm btn-outline-primary">
+                          <i class="fas fa-chart-line me-1"></i> Detalles
+                        </a>
+                      </td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+            
+            <!-- Leyenda -->
+            <div class="d-flex flex-wrap justify-content-center mt-3">
+              <div class="me-3 mb-2">
+                <span class="badge bg-warning"><i class="fas fa-crown"></i></span> Campeón
+              </div>
+              <div class="me-3 mb-2">
+                <span class="badge bg-secondary">2</span> Subcampeón
+              </div>
+              <div class="me-3 mb-2">
+                <span class="badge bg-danger">3</span> Tercer lugar
+              </div>
+            </div>
+            
+          <% } else { %>
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i> No hay participantes registrados en este torneo.
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Estadísticas globales del torneo -->
+    <div class="col-12 mb-4">
+      <div class="card shadow">
+        <div class="card-header bg-info text-white">
+          <h3 class="h5 mb-0"><i class="fas fa-chart-pie me-2"></i> Estadísticas del Torneo</h3>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <div class="card border-primary h-100">
+                <div class="card-body text-center">
+                  <h4 class="h5">Promedio General</h4>
+                  <% 
+                    let puntuacionTotal = 0;
+                    let tiradasTotales = 0;
+                    
+                    participantes.forEach(p => {
+                      if (p.estado === 'aceptado') {
+                        puntuacionTotal += p.puntuacion;
+                        tiradasTotales += p.tiradas.length;
+                      }
+                    });
+                    
+                    const promedioGeneral = tiradasTotales > 0 
+                      ? (puntuacionTotal / tiradasTotales).toFixed(1) 
+                      : 0;
+                  %>
+                  <h3 class="text-primary mt-3"><%= promedioGeneral %></h3>
+                  <p class="text-muted mb-0">
+                    Puntos por ronda
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+              <div class="card border-success h-100">
+                <div class="card-body text-center">
+                  <h4 class="h5">Mejor Ronda del Torneo</h4>
+                  <% 
+                    let mejorRondaTorneo = { total: 0, arquero: null, ronda: null };
+                    
+                    participantes.forEach(p => {
+                      if (p.estado === 'aceptado') {
+                        p.tiradas.forEach(tirada => {
+                          if (tirada.total > mejorRondaTorneo.total) {
+                            mejorRondaTorneo = {
+                              total: tirada.total,
+                              arquero: p.usuario.nombre + ' ' + p.usuario.apellido,
+                              ronda: tirada.ronda
+                            };
+                          }
+                        });
+                      }
+                    });
+                  %>
+                  <h3 class="text-success mt-3"><%= mejorRondaTorneo.total || 0 %></h3>
+                  <p class="text-muted mb-0">
+                    <% if (mejorRondaTorneo.arquero) { %>
+                      <%= mejorRondaTorneo.arquero %> (R<%= mejorRondaTorneo.ronda %>)
+                    <% } else { %>
+                      Ninguna ronda registrada
+                    <% } %>
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+              <div class="card border-warning h-100">
+                <div class="card-body text-center">
+                  <h4 class="h5">Progreso del Torneo</h4>
+                  <% 
+                    const totalRondasPosibles = participantes
+                      .filter(p => p.estado === 'aceptado')
+                      .length * torneo.rondas;
+                    
+                    const totalRondasCompletadas = participantes
+                      .filter(p => p.estado === 'aceptado')
+                      .reduce((total, p) => total + p.tiradas.length, 0);
+                    
+                    const porcentajeProgreso = totalRondasPosibles > 0 
+                      ? Math.round((totalRondasCompletadas / totalRondasPosibles) * 100) 
+                      : 0;
+                  %>
+                  <h3 class="text-warning mt-3"><%= porcentajeProgreso %>%</h3>
+                  <p class="text-muted mb-0">
+                    <%= totalRondasCompletadas %> de <%= totalRondasPosibles %> rondas
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 d-flex justify-content-between mb-5">
+      <a href="/torneos/<%= torneo._id %>/tiradas" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Volver a Tiradas
+      </a>
+      <a href="/torneos/<%= torneo._id %>" class="btn btn-outline-primary">
+        <i class="fas fa-info-circle me-2"></i> Detalles del Torneo
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="d-sm-none">
+  <a href="/dashboard" class="btn btn-primary mobile-float-btn">
+    <i class="fas fa-home"></i>
+  </a>
+</div> 

@@ -1,0 +1,178 @@
+<div class="row">
+  <div class="col-12 mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <h1 class="h2"><i class="fas fa-trophy me-2"></i> Torneos de Arquería</h1>
+      <a href="/torneos/crear" class="btn btn-primary">
+        <i class="fas fa-plus-circle me-2"></i> Crear Torneo
+      </a>
+    </div>
+    <hr>
+    
+    <!-- Filtros y Búsqueda -->
+    <div class="card shadow mb-4">
+      <div class="card-body">
+        <form id="filtrosForm" class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label">Fecha Desde</label>
+            <input type="date" name="fechaDesde" class="form-control" value="<%= filtros.fechaDesde %>">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Fecha Hasta</label>
+            <input type="date" name="fechaHasta" class="form-control" value="<%= filtros.fechaHasta %>">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Buscar</label>
+            <input type="text" name="busqueda" class="form-control" 
+                   value="<%= filtros.busqueda %>"
+                   placeholder="Buscar por nombre o distancia..."
+                   id="busquedaInput">
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <div class="form-check">
+              <input type="checkbox" name="ocultarFinalizados" class="form-check-input" 
+                     id="ocultarFinalizados" <%= filtros.ocultarFinalizados ? 'checked' : '' %>>
+              <label class="form-check-label" for="ocultarFinalizados">
+                Ocultar Finalizados
+              </label>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <% if (torneos && torneos.length > 0) { %>
+    <div class="card shadow">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover" id="tablaTorneos">
+            <% torneos.forEach(torneo => { %>
+              <tr>
+                <td>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                      <i class="<%= torneo.estado === 'preparacion' ? 'fas fa-clock' : 
+                                   torneo.estado === 'activo' ? 'fas fa-play' : 'fas fa-flag-checkered' %> me-2"></i>
+                      <%= torneo.nombre %>
+                    </h5>
+                    <span class="badge <%= torneo.estado === 'preparacion' ? 'bg-dark' : 
+                                            torneo.estado === 'activo' ? 'bg-light text-success' : 'bg-light text-secondary' %>">
+                      <%= torneo.estado === 'preparacion' ? 'En preparación' : 
+                         torneo.estado === 'activo' ? 'Activo' : 'Finalizado' %>
+                    </span>
+                  </div>
+                </td>
+                <td>
+                  <p class="card-text">
+                    <strong>Creador:</strong> <%= torneo.creador ? `${torneo.creador.nombre} ${torneo.creador.apellido}` : 'Desconocido' %>
+                  </p>
+                </td>
+                <td>
+                  <p class="card-text">
+                    <strong>Fecha:</strong> <%= new Date(torneo.fecha).toLocaleDateString('es-ES') %>
+                  </p>
+                </td>
+                <td>
+                  <p class="card-text">
+                    <strong>Distancia:</strong> <%= torneo.distancia %> | 
+                    <strong>Rondas:</strong> <%= torneo.rondas %> | 
+                    <strong>Flechas por ronda:</strong> <%= torneo.flechasPorTirada %>
+                  </p>
+                </td>
+                <td>
+                  <div class="d-grid mt-3">
+                    <a href="/torneos/<%= torneo._id %>" class="btn btn-outline-primary">
+                      Ver Detalles
+                    </a>
+                    <% if ((user && user.isAdmin) || (user && torneo.creador && torneo.creador._id.toString() === user._id.toString())) { %>
+                      <a href="/torneos/<%= torneo._id %>/eliminar" class="btn btn-outline-danger mt-2"
+                        onclick="return confirm('¿Estás seguro de que deseas eliminar este torneo? Esta acción no se puede deshacer y se perderán todos los datos asociados.')">
+                        <i class="fas fa-trash-alt me-2"></i> Eliminar Torneo
+                      </a>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </table>
+        </div>
+        
+        <!-- Paginación -->
+        <% if (paginacion.total > 1) { %>
+          <nav aria-label="Navegación de torneos" class="mt-4">
+            <ul class="pagination justify-content-center">
+              <% if (paginacion.anterior) { %>
+                <li class="page-item">
+                  <a class="page-link" href="?pagina=<%= paginacion.anterior %>&<%= new URLSearchParams({...filtros, pagina: undefined}).toString() %>">
+                    Anterior
+                  </a>
+                </li>
+              <% } %>
+              
+              <% paginacion.paginas.forEach(pagina => { %>
+                <li class="page-item <%= pagina === paginacion.actual ? 'active' : '' %>">
+                  <a class="page-link" href="?pagina=<%= pagina %>&<%= new URLSearchParams({...filtros, pagina: undefined}).toString() %>">
+                    <%= pagina %>
+                  </a>
+                </li>
+              <% }); %>
+              
+              <% if (paginacion.siguiente) { %>
+                <li class="page-item">
+                  <a class="page-link" href="?pagina=<%= paginacion.siguiente %>&<%= new URLSearchParams({...filtros, pagina: undefined}).toString() %>">
+                    Siguiente
+                  </a>
+                </li>
+              <% } %>
+            </ul>
+          </nav>
+        <% } %>
+      </div>
+    </div>
+  <% } else { %>
+    <div class="col-12">
+      <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i> No hay torneos disponibles actualmente.
+      </div>
+      <div class="text-center mt-4">
+        <a href="/torneos/crear" class="btn btn-primary btn-lg">
+          <i class="fas fa-plus-circle me-2"></i> Crear mi primer torneo
+        </a>
+      </div>
+    </div>
+  <% } %>
+</div>
+
+<div class="d-sm-none">
+  <a href="/dashboard" class="btn btn-primary mobile-float-btn">
+    <i class="fas fa-home"></i>
+  </a>
+</div>
+
+<!-- Script para búsqueda en tiempo real -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  let timeoutId;
+  const form = document.getElementById('filtrosForm');
+  const busquedaInput = document.getElementById('busquedaInput');
+  const ocultarFinalizados = document.getElementById('ocultarFinalizados');
+  
+  // Función para actualizar los resultados
+  function actualizarResultados() {
+    const formData = new FormData(form);
+    const params = new URLSearchParams(formData);
+    window.location.href = `?${params.toString()}`;
+  }
+  
+  // Manejar búsqueda en tiempo real
+  busquedaInput.addEventListener('input', function() {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(actualizarResultados, 500);
+  });
+  
+  // Manejar cambios en los filtros
+  form.querySelectorAll('input[type="date"], input[type="checkbox"]').forEach(input => {
+    input.addEventListener('change', actualizarResultados);
+  });
+});
+</script> 

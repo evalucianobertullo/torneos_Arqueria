@@ -1,0 +1,871 @@
+<div class="container mt-4 mb-5">
+  <div class="row">
+    <div class="col-12 mb-4">
+      <div class="card shadow">
+        <div class="card-header bg-success text-white">
+          <div class="d-flex justify-content-between align-items-center">
+            <h2 class="h4 mb-0">
+              <i class="fas fa-bullseye me-2"></i> Registro de Tiradas - <%= torneo.nombre %>
+            </h2>
+            <span class="badge bg-light text-success">Ronda <%= rondaActual %> de <%= torneo.rondas %></span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <p><strong>Fecha:</strong> <%= new Date(torneo.fecha).toLocaleDateString('es-ES') %></p>
+              <p><strong>Flechas por tirada:</strong> <%= torneo.flechasPorTirada %></p>
+            </div>
+            <div class="col-md-6">
+              <p><strong>Rondas totales:</strong> <%= torneo.rondas %></p>
+              <p><strong>Participantes:</strong> <%= torneo.participantes.filter(p => p.estado === 'aceptado').length %></p>
+            </div>
+          </div>
+          
+          <!-- Información del estado del usuario -->
+          <% if (esCreador) { %>
+            <div class="alert alert-info">
+              <strong><i class="fas fa-crown me-2"></i> Eres el creador de este torneo.</strong>
+              Puedes registrar tiradas para todos los participantes.
+            </div>
+          <% } else { %>
+            <div class="alert alert-warning">
+              <strong><i class="fas fa-info-circle me-2"></i> Participante</strong>
+              Solo el creador del torneo puede registrar tiradas.
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <% if (esCreador) { %>
+      <div class="col-12 mb-4">
+        <ul class="nav nav-tabs" id="torneoTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="registro-tab" data-bs-toggle="tab" data-bs-target="#registro" 
+                    type="button" role="tab" aria-controls="registro" aria-selected="true">
+              <i class="fas fa-edit me-1"></i> Registrar Tiradas
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tiradas-tab" data-bs-toggle="tab" data-bs-target="#tiradas" 
+                    type="button" role="tab" aria-controls="tiradas" aria-selected="false">
+              <i class="fas fa-clipboard-list me-1"></i> Tiradas Registradas
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="clasificacion-tab" data-bs-toggle="tab" data-bs-target="#clasificacion" 
+                    type="button" role="tab" aria-controls="clasificacion" aria-selected="false">
+              <i class="fas fa-trophy me-1"></i> Clasificación
+            </button>
+          </li>
+        </ul>
+        
+        <div class="tab-content card shadow border-top-0" id="torneoTabContent">
+          <!-- PESTAÑA 1: REGISTRO DE TIRADAS -->
+          <div class="tab-pane fade show active p-3" id="registro" role="tabpanel" aria-labelledby="registro-tab">
+            <% 
+              // Filtrar participantes aceptados que no han registrado tirada para esta ronda
+              const participantesDisponibles = torneo.participantes
+                .filter(p => p.estado === 'aceptado' && 
+                            (!p.tiradas || !p.tiradas.some(t => t.ronda === rondaActual)));
+            %>
+            
+            <% if (participantesDisponibles.length === 0) { %>
+              <div class="alert alert-success mb-4">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>¡Ronda completa!</strong> Todos los participantes han registrado sus tiradas para la ronda <%= rondaActual %>.
+                <% if (rondaActual < torneo.rondas) { %>
+                  <div class="mt-2">
+                    <strong>El sistema avanzará automáticamente a la siguiente ronda cuando recargues la página.</strong>
+                  </div>
+                <% } else { %>
+                  <div class="mt-2">
+                    <strong>Esta es la última ronda del torneo. Puedes finalizarlo cuando estés listo.</strong>
+                  </div>
+                <% } %>
+              </div>
+            <% } else { %>
+              <div class="card mb-4">
+                <div class="card-header bg-light">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="h5 mb-0">Participantes pendientes (<%= participantesDisponibles.length %>)</h3>
+                    
+                    <!-- Buscador de participantes -->
+                    <div class="input-group" style="max-width: 300px;">
+                      <input type="text" id="buscarParticipante" class="form-control" placeholder="Buscar arquero..." aria-label="Buscar participante">
+                      <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="tablaParticipantesPendientes">
+                      <thead class="table-light">
+                        <tr>
+                          <th>Arquero</th>
+                          <th>Tipo de Arco</th>
+                          <th>Puntuación Actual</th>
+                          <th>Tiradas Completadas</th>
+                          <th>Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% participantesDisponibles.forEach(participante => { %>
+                          <tr class="participante-row">
+                            <td>
+                              <div class="d-flex align-items-center">
+                                <span class="fw-bold"><%= participante.usuario.nombre %> <%= participante.usuario.apellido %></span>
+                              </div>
+                            </td>
+                            <td><%= participante.usuario.tipoArco || '-' %></td>
+                            <td><%= participante.puntuacion %></td>
+                            <td><%= participante.tiradas ? participante.tiradas.length : 0 %> / <%= torneo.rondas %></td>
+                            <td>
+                              <button 
+                                class="btn btn-sm btn-success registrar-btn" 
+                                data-participante-id="<%= participante.usuario._id %>"
+                                data-participante-nombre="<%= participante.usuario.nombre %> <%= participante.usuario.apellido %>">
+                                <i class="fas fa-edit me-1"></i> Registrar
+                              </button>
+                            </td>
+                          </tr>
+                        <% }); %>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Formulario de registro de tiradas (inicialmente oculto) -->
+              <div id="registroTiradaForm" class="card border-success mb-4" style="display: none;">
+                <div class="card-header bg-success text-white">
+                  <h3 class="h5 mb-0">
+                    <i class="fas fa-arrow-alt-circle-right me-2"></i> 
+                    Registrar tirada para <span id="nombreParticipanteSeleccionado"></span>
+                  </h3>
+                </div>
+                <div class="card-body">
+                  <form action="/torneos/<%= torneo._id %>/registrar-tirada" method="POST" class="needs-validation" novalidate>
+                    <input type="hidden" name="ronda" value="<%= rondaActual %>">
+                    <input type="hidden" name="participanteId" id="participanteIdInput" value="">
+                    
+                    <!-- Campos para puntuaciones - NUEVO DISEÑO MÓVIL -->
+                    <div class="row mb-4">
+                      <div class="col-12">
+                        <div class="card">
+                          <div class="card-header bg-light">
+                            <h4 class="mb-0"><i class="fas fa-arrows-alt me-2"></i> Selección de flechas</h4>
+                          </div>
+                          <div class="card-body">
+                            <div class="row flechas-selector mb-2">
+                              <% for(let i = 0; i < torneo.flechasPorTirada; i++) { %>
+                                <div class="col-4 col-md-2 mb-2">
+                                  <button type="button" 
+                                      class="btn btn-outline-primary btn-flecha w-100" 
+                                      data-flecha="<%= i %>"
+                                      id="btnFlecha<%= i %>">
+                                    <span class="numero-flecha">Flecha <%= i+1 %></span>
+                                    <span class="valor-flecha badge bg-secondary d-none">-</span>
+                                  </button>
+                                  <input type="hidden" name="puntos[<%= i %>]" id="puntoInput<%= i %>" required value="">
+                                </div>
+                              <% } %>
+                            </div>
+
+                            <!-- Contenedor de botonera (aparece solo cuando se selecciona una flecha) -->
+                            <div id="botoneraContainer" class="mt-3 d-none">
+                              <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                  <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Puntuación: <span id="flechaSeleccionadaText">Flecha 1</span></h5>
+                                    <button type="button" class="btn-close btn-close-white" id="cerrarBotonera" aria-label="Cerrar"></button>
+                                  </div>
+                                </div>
+                                <div class="card-body p-2">
+                                  <!-- 0-2: fondo blanco con letra negra -->
+                                  <div class="d-flex mb-2 justify-content-between">
+                                    <% for(let j = 0; j <= 2; j++) { %>
+                                      <button type="button" 
+                                          class="btn punto-btn btn-lg btn-outline-dark" 
+                                          style="width: 31%"
+                                          data-punto="<%= j %>">
+                                        <%= j %>
+                                      </button>
+                                    <% } %>
+                                  </div>
+                                  
+                                  <!-- 3-4: fondo negro con letras blancas -->
+                                  <div class="d-flex mb-2 justify-content-between">
+                                    <% for(let j = 3; j <= 4; j++) { %>
+                                      <button type="button" 
+                                          class="btn punto-btn btn-lg btn-dark text-white" 
+                                          style="width: 48%"
+                                          data-punto="<%= j %>">
+                                        <%= j %>
+                                      </button>
+                                    <% } %>
+                                  </div>
+                                  
+                                  <!-- 5-6: fondo celeste letras en negro -->
+                                  <div class="d-flex mb-2 justify-content-between">
+                                    <% for(let j = 5; j <= 6; j++) { %>
+                                      <button type="button" 
+                                          class="btn punto-btn btn-lg btn-info text-dark" 
+                                          style="width: 48%"
+                                          data-punto="<%= j %>">
+                                        <%= j %>
+                                      </button>
+                                    <% } %>
+                                  </div>
+                                  
+                                  <!-- 7-8: fondo rojo letras negro -->
+                                  <div class="d-flex mb-2 justify-content-between">
+                                    <% for(let j = 7; j <= 8; j++) { %>
+                                      <button type="button" 
+                                          class="btn punto-btn btn-lg btn-danger text-dark" 
+                                          style="width: 48%"
+                                          data-punto="<%= j %>">
+                                        <%= j %>
+                                      </button>
+                                    <% } %>
+                                  </div>
+                                  
+                                  <!-- 9-10: fondo amarillo con letras en negro -->
+                                  <div class="d-flex justify-content-between">
+                                    <% for(let j = 9; j <= 10; j++) { %>
+                                      <button type="button" 
+                                          class="btn punto-btn btn-lg btn-warning text-dark" 
+                                          style="width: 48%"
+                                          data-punto="<%= j %>">
+                                        <%= j %>
+                                      </button>
+                                    <% } %>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                      <div class="h4">Total: <span id="puntuacion-total">0</span></div>
+                      <div>
+                        <button type="button" id="cancelarRegistroBtn" class="btn btn-outline-secondary me-2">
+                          <i class="fas fa-times me-1"></i> Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                          <i class="fas fa-save me-2"></i> Guardar tirada
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            <% } %>
+          </div>
+          
+          <!-- PESTAÑA 2: TIRADAS REGISTRADAS -->
+          <div class="tab-pane fade p-3" id="tiradas" role="tabpanel" aria-labelledby="tiradas-tab">
+            <% 
+              // Obtener participantes con tiradas en la ronda actual
+              const participantesConTirada = torneo.participantes
+                .filter(p => p.estado === 'aceptado' && 
+                          p.tiradas && p.tiradas.some(t => t.ronda === rondaActual));
+            %>
+            
+            <div class="card mb-4">
+              <div class="card-header bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                  <h3 class="h5 mb-0">Tiradas registradas - Ronda <%= rondaActual %></h3>
+                  <span class="badge bg-primary"><%= participantesConTirada.length %> de <%= torneo.participantes.filter(p => p.estado === 'aceptado').length %></span>
+                </div>
+              </div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-bordered table-striped mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Arquero</th>
+                        <% for(let i = 1; i <= torneo.flechasPorTirada; i++) { %>
+                          <th class="text-center">F<%= i %></th>
+                        <% } %>
+                        <th class="text-center">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% if (participantesConTirada.length === 0) { %>
+                        <tr>
+                          <td colspan="<%= torneo.flechasPorTirada + 2 %>" class="text-center py-3">
+                            <i class="fas fa-info-circle me-2"></i> No hay tiradas registradas para esta ronda
+                          </td>
+                        </tr>
+                      <% } else { %>
+                        <% participantesConTirada.forEach(participante => { %>
+                          <tr>
+                            <td>
+                              <%= participante.usuario.nombre %> <%= participante.usuario.apellido %>
+                            </td>
+                            <% 
+                              const tiradaActual = participante.tiradas.find(t => t.ronda === rondaActual);
+                            %>
+                            <% tiradaActual.puntos.forEach(punto => { %>
+                              <td class="text-center <%= punto >= 8 ? 'table-success' : punto >= 5 ? 'table-warning' : 'table-danger' %>">
+                                <strong><%= punto %></strong>
+                              </td>
+                            <% }); %>
+                            <td class="text-center table-primary">
+                              <strong><%= tiradaActual.total %></strong>
+                            </td>
+                          </tr>
+                        <% }); %>
+                      <% } %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Historial de rondas anteriores (colapsable) -->
+            <% if (rondaActual > 1) { %>
+              <div class="accordion mb-4" id="accordionRondas">
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="headingRondas">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                            data-bs-target="#collapseRondas" aria-expanded="false" aria-controls="collapseRondas">
+                      <i class="fas fa-history me-2"></i> Historial de rondas anteriores
+                    </button>
+                  </h2>
+                  <div id="collapseRondas" class="accordion-collapse collapse" aria-labelledby="headingRondas">
+                    <div class="accordion-body p-0">
+                      <% for(let r = rondaActual - 1; r >= 1; r--) { %>
+                        <div class="card mb-3">
+                          <div class="card-header bg-light">
+                            <h5 class="mb-0">Ronda <%= r %></h5>
+                          </div>
+                          <div class="card-body p-0">
+                            <div class="table-responsive">
+                              <table class="table table-bordered table-striped mb-0">
+                                <thead class="table-light">
+                                  <tr>
+                                    <th>Arquero</th>
+                                    <% for(let i = 1; i <= torneo.flechasPorTirada; i++) { %>
+                                      <th class="text-center">F<%= i %></th>
+                                    <% } %>
+                                    <th class="text-center">Total</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <% 
+                                    const tiradasPorRonda = torneo.participantes
+                                      .filter(p => p.estado === 'aceptado' && 
+                                              p.tiradas && p.tiradas.some(t => t.ronda === r));
+                                  %>
+                                  <% if (tiradasPorRonda.length === 0) { %>
+                                    <tr>
+                                      <td colspan="<%= torneo.flechasPorTirada + 2 %>" class="text-center">
+                                        No hay tiradas registradas para esta ronda
+                                      </td>
+                                    </tr>
+                                  <% } else { %>
+                                    <% tiradasPorRonda.forEach(participante => { %>
+                                      <tr>
+                                        <td>
+                                          <%= participante.usuario.nombre %> <%= participante.usuario.apellido %>
+                                        </td>
+                                        <% 
+                                          const tirada = participante.tiradas.find(t => t.ronda === r);
+                                        %>
+                                        <% tirada.puntos.forEach(punto => { %>
+                                          <td class="text-center <%= punto >= 8 ? 'table-success' : punto >= 5 ? 'table-warning' : 'table-danger' %>">
+                                            <strong><%= punto %></strong>
+                                          </td>
+                                        <% }); %>
+                                        <td class="text-center table-primary">
+                                          <strong><%= tirada.total %></strong>
+                                        </td>
+                                      </tr>
+                                    <% }); %>
+                                  <% } %>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
+                      <% } %>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% } %>
+          </div>
+          
+          <!-- PESTAÑA 3: CLASIFICACIÓN GENERAL -->
+          <div class="tab-pane fade p-3" id="clasificacion" role="tabpanel" aria-labelledby="clasificacion-tab">
+            <% 
+              // Ordenar participantes por puntuación (de mayor a menor)
+              const participantesOrdenados = torneo.participantes
+                .filter(p => p.estado === 'aceptado')
+                .sort((a, b) => b.puntuacion - a.puntuacion);
+            %>
+            
+            <div class="card">
+              <div class="card-header bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                  <h3 class="h5 mb-0">Clasificación General</h3>
+                  <div class="input-group" style="max-width: 300px;">
+                    <input type="text" id="buscarClasificacion" class="form-control" placeholder="Buscar arquero..." aria-label="Buscar en clasificación">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                  </div>
+                </div>
+              </div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-striped table-hover mb-0" id="tablaClasificacion">
+                    <thead class="table-light">
+                      <tr>
+                        <th>#</th>
+                        <th>Arquero</th>
+                        <th>Tipo de Arco</th>
+                        <th>Puntuación Total</th>
+                        <th>Rondas Completadas</th>
+                        <th>Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% participantesOrdenados.forEach((participante, index) => { %>
+                        <tr class="clasificacion-row <%= participante.usuario && participante.usuario._id.toString() === userId ? 'table-primary' : '' %>">
+                          <td><%= index + 1 %></td>
+                          <td>
+                            <div class="d-flex align-items-center">
+                              <%= participante.usuario ? `${participante.usuario.nombre} ${participante.usuario.apellido}` : 'Desconocido' %>
+                              <% if (index === 0 && participantesOrdenados.length > 1) { %>
+                                <i class="fas fa-trophy text-warning ms-2"></i>
+                              <% } %>
+                            </div>
+                          </td>
+                          <td><%= participante.usuario ? participante.usuario.tipoArco : '-' %></td>
+                          <td><strong><%= participante.puntuacion %></strong></td>
+                          <td><%= participante.tiradas ? participante.tiradas.length : 0 %> / <%= torneo.rondas %></td>
+                          <td>
+                            <a href="/torneos/<%= torneo._id %>/participante/<%= participante.usuario._id %>/detalle" 
+                               class="btn btn-sm btn-outline-info">
+                              <i class="fas fa-chart-line"></i>
+                            </a>
+                          </td>
+                        </tr>
+                      <% }); %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% } else { %>
+      <!-- Vista para no creadores: Solo pueden ver la clasificación -->
+      <div class="col-md-12 mb-4">
+        <div class="card shadow">
+          <div class="card-header bg-primary text-white">
+            <h3 class="h5 mb-0"><i class="fas fa-table me-2"></i> Clasificación General</h3>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-striped table-hover">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Arquero</th>
+                    <th>Tipo de Arco</th>
+                    <th>Puntuación Total</th>
+                    <th>Rondas Completadas</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% 
+                    // Ordenar participantes por puntuación (de mayor a menor)
+                    const participantesOrdenados = torneo.participantes
+                      .filter(p => p.estado === 'aceptado')
+                      .sort((a, b) => b.puntuacion - a.puntuacion);
+                  %>
+                  <% participantesOrdenados.forEach((participante, index) => { %>
+                    <tr class="<%= participante.usuario && participante.usuario._id.toString() === userId ? 'table-primary' : '' %>">
+                      <td><%= index + 1 %></td>
+                      <td>
+                        <%= participante.usuario ? `${participante.usuario.nombre} ${participante.usuario.apellido}` : 'Desconocido' %>
+                        <% if (index === 0 && participantesOrdenados.length > 1) { %>
+                          <i class="fas fa-trophy text-warning ms-2"></i>
+                        <% } %>
+                      </td>
+                      <td><%= participante.usuario ? participante.usuario.tipoArco : '-' %></td>
+                      <td><strong><%= participante.puntuacion %></strong></td>
+                      <td><%= participante.tiradas ? participante.tiradas.length : 0 %> / <%= torneo.rondas %></td>
+                      <td>
+                        <a href="/torneos/<%= torneo._id %>/participante/<%= participante.usuario._id %>/detalle" 
+                           class="btn btn-sm btn-outline-info">
+                          <i class="fas fa-chart-line"></i>
+                        </a>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% } %>
+
+    <div class="col-12 d-flex justify-content-between mb-5">
+      <a href="/torneos/<%= torneo._id %>" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Volver al Torneo
+      </a>
+      <% if (esCreador && esUltimaRonda && todasLasTiradasRegistradas) { %>
+        <a href="/torneos/<%= torneo._id %>/finalizar" 
+           class="btn btn-danger"
+           onclick="return confirm('¿Estás seguro de que deseas finalizar el torneo? Esta acción no se puede deshacer.')">
+          <i class="fas fa-flag-checkered me-2"></i> Finalizar Torneo
+        </a>
+      <% } %>
+    </div>
+
+    <div class="d-flex justify-content-between mb-3">
+      <h3 class="h5"><i class="fas fa-list-ol me-2"></i> Clasificación Actual</h3>
+      <a href="/torneos/<%= torneo._id %>/clasificacion" class="btn btn-sm btn-outline-primary">
+        <i class="fas fa-trophy me-1"></i> Ver Clasificación Completa
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="d-sm-none">
+  <a href="/dashboard" class="btn btn-primary mobile-float-btn">
+    <i class="fas fa-home"></i>
+  </a>
+</div>
+
+<script>
+  // Script para gestionar la interfaz de registro
+  document.addEventListener('DOMContentLoaded', function() {
+    // Elementos del DOM
+    const buscarParticipanteInput = document.getElementById('buscarParticipante');
+    const buscarClasificacionInput = document.getElementById('buscarClasificacion');
+    const participanteRows = document.querySelectorAll('.participante-row');
+    const clasificacionRows = document.querySelectorAll('.clasificacion-row');
+    const registrarBtns = document.querySelectorAll('.registrar-btn');
+    const registroForm = document.getElementById('registroTiradaForm');
+    const participanteIdInput = document.getElementById('participanteIdInput');
+    const nombreParticipanteSpan = document.getElementById('nombreParticipanteSeleccionado');
+    const cancelarBtn = document.getElementById('cancelarRegistroBtn');
+    const puntuacionInputs = document.querySelectorAll('input[name^="puntos["]');
+    const puntuacionTotalSpan = document.getElementById('puntuacion-total');
+    
+    // Elementos específicos del nuevo diseño
+    const btnsFlechas = document.querySelectorAll('.btn-flecha');
+    const botoneraContainer = document.getElementById('botoneraContainer');
+    const btnsPuntos = document.querySelectorAll('.punto-btn');
+    const cerrarBotonera = document.getElementById('cerrarBotonera');
+    const flechaSeleccionadaText = document.getElementById('flechaSeleccionadaText');
+    
+    let flechaSeleccionadaIndice = null;
+    
+    // Función de búsqueda para participantes pendientes
+    if (buscarParticipanteInput) {
+      buscarParticipanteInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        participanteRows.forEach(row => {
+          const nombre = row.querySelector('td:first-child').textContent.toLowerCase();
+          if (nombre.includes(searchTerm)) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      });
+    }
+    
+    // Función de búsqueda para clasificación
+    if (buscarClasificacionInput) {
+      buscarClasificacionInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        clasificacionRows.forEach(row => {
+          const nombre = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+          if (nombre.includes(searchTerm)) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      });
+    }
+    
+    // Mostrar formulario de registro al hacer clic en "Registrar"
+    if (registrarBtns) {
+      registrarBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const participanteId = this.getAttribute('data-participante-id');
+          const participanteNombre = this.getAttribute('data-participante-nombre');
+          
+          participanteIdInput.value = participanteId;
+          nombreParticipanteSpan.textContent = participanteNombre;
+          
+          // Resetear el formulario
+          document.querySelector('form').reset();
+          puntuacionTotalSpan.textContent = '0';
+          
+          // Resetear el estado visual de los botones de flechas
+          btnsFlechas.forEach(btn => {
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-outline-primary');
+            const valorBadge = btn.querySelector('.valor-flecha');
+            valorBadge.textContent = '-';
+            valorBadge.classList.add('d-none');
+          });
+          
+          // Ocultar la botonera si estaba visible
+          botoneraContainer.classList.add('d-none');
+          
+          // Mostrar el formulario con una animación suave
+          registroForm.style.display = 'block';
+          registroForm.scrollIntoView({ behavior: 'smooth' });
+          
+          // Opcional: resaltar la fila seleccionada
+          participanteRows.forEach(row => {
+            row.classList.remove('table-info');
+          });
+          this.closest('tr').classList.add('table-info');
+        });
+      });
+    }
+    
+    // Ocultar formulario al cancelar
+    if (cancelarBtn) {
+      cancelarBtn.addEventListener('click', function() {
+        registroForm.style.display = 'none';
+        
+        // Quitar resaltado de filas
+        participanteRows.forEach(row => {
+          row.classList.remove('table-info');
+        });
+      });
+    }
+    
+    // Gestión de selección de flechas
+    if (btnsFlechas.length > 0) {
+      btnsFlechas.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const indiceFlecha = parseInt(this.getAttribute('data-flecha'));
+          flechaSeleccionadaIndice = indiceFlecha;
+          
+          // Actualizar el texto de la botonera
+          flechaSeleccionadaText.textContent = `Flecha ${indiceFlecha + 1}`;
+          
+          // Mostrar la botonera
+          botoneraContainer.classList.remove('d-none');
+          
+          // Desplazar la vista a la botonera
+          botoneraContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          
+          // Opcional: resaltar el botón seleccionado
+          btnsFlechas.forEach(b => {
+            b.classList.remove('active');
+          });
+          this.classList.add('active');
+        });
+      });
+    }
+    
+    // Cerrar botonera
+    if (cerrarBotonera) {
+      cerrarBotonera.addEventListener('click', function() {
+        botoneraContainer.classList.add('d-none');
+        
+        // Quitar resaltado del botón seleccionado
+        btnsFlechas.forEach(b => {
+          b.classList.remove('active');
+        });
+        
+        flechaSeleccionadaIndice = null;
+      });
+    }
+    
+    // Gestionar la selección de puntuación
+    if (btnsPuntos.length > 0) {
+      btnsPuntos.forEach(btn => {
+        btn.addEventListener('click', function() {
+          if (flechaSeleccionadaIndice === null) return;
+          
+          const punto = this.getAttribute('data-punto');
+          const flechaInput = document.getElementById(`puntoInput${flechaSeleccionadaIndice}`);
+          const flechaBtn = document.getElementById(`btnFlecha${flechaSeleccionadaIndice}`);
+          
+          // Actualizar el valor del input
+          flechaInput.value = punto;
+          
+          // Actualizar visualmente el botón de la flecha
+          flechaBtn.classList.remove('btn-outline-primary', 'active');
+          flechaBtn.classList.add('btn-success');
+          
+          // Mostrar el valor en el badge
+          const valorBadge = flechaBtn.querySelector('.valor-flecha');
+          valorBadge.textContent = punto;
+          valorBadge.classList.remove('d-none', 'bg-secondary');
+          
+          // Establecer el color del badge según el valor
+          valorBadge.className = 'valor-flecha badge';
+          if (punto <= 2) {
+            valorBadge.classList.add('bg-white', 'text-dark', 'border', 'border-dark');
+          } else if (punto <= 4) {
+            valorBadge.classList.add('bg-dark', 'text-white');
+          } else if (punto <= 6) {
+            valorBadge.classList.add('bg-info', 'text-dark');
+          } else if (punto <= 8) {
+            valorBadge.classList.add('bg-danger', 'text-dark');
+          } else {
+            valorBadge.classList.add('bg-warning', 'text-dark');
+          }
+          
+          // Calcular el total
+          calcularTotal();
+          
+          // Ocultar la botonera
+          botoneraContainer.classList.add('d-none');
+          
+          // Resetear la selección
+          flechaSeleccionadaIndice = null;
+          
+          // Opcional: seleccionar automáticamente la siguiente flecha sin valor
+          const siguienteFlecha = Array.from(puntuacionInputs).findIndex(input => input.value === '');
+          if (siguienteFlecha !== -1) {
+            setTimeout(() => {
+              document.getElementById(`btnFlecha${siguienteFlecha}`).click();
+            }, 300);
+          }
+        });
+      });
+    }
+    
+    // Calcular el total de la puntuación
+    function calcularTotal() {
+      let total = 0;
+      puntuacionInputs.forEach(input => {
+        if (input.value !== '') {
+          total += parseInt(input.value);
+        }
+      });
+      puntuacionTotalSpan.textContent = total;
+    }
+
+    // Bootstrap form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+      form.addEventListener('submit', event => {
+        let formValid = true;
+        
+        // Comprobar que todos los campos de puntuación tienen un valor
+        puntuacionInputs.forEach((input, index) => {
+          if (input.value === '') {
+            input.classList.add('is-invalid');
+            formValid = false;
+            
+            // Resaltar visualmente el botón de flecha correspondiente
+            const flechaBtn = document.getElementById(`btnFlecha${index}`);
+            flechaBtn.classList.add('btn-outline-danger');
+            flechaBtn.classList.remove('btn-outline-primary');
+          }
+        });
+        
+        if (!formValid) {
+          event.preventDefault();
+          event.stopPropagation();
+          
+          // Mostrar un mensaje de error
+          const alertEl = document.createElement('div');
+          alertEl.className = 'alert alert-danger mt-3 mb-3';
+          alertEl.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i> Por favor, registra la puntuación para todas las flechas.';
+          
+          const alertContainer = form.querySelector('.alert');
+          if (!alertContainer) {
+            form.prepend(alertEl);
+            
+            // Remover después de 3 segundos
+            setTimeout(() => {
+              alertEl.remove();
+            }, 3000);
+          }
+        }
+        
+        form.classList.add('was-validated');
+      }, false);
+    });
+  });
+</script>
+
+<style>
+  /* Estilos para la nueva botonera */
+  .btn-flecha {
+    position: relative;
+    min-height: 50px;
+    border-width: 2px;
+    transition: all 0.2s ease;
+  }
+  
+  .btn-flecha.active {
+    transform: scale(1.05);
+    box-shadow: 0 0 8px rgba(0,0,0,0.2);
+  }
+  
+  .btn-flecha.btn-success {
+    border-color: #146c43;
+  }
+  
+  .btn-flecha.btn-outline-danger {
+    border-width: 2px;
+    animation: pulse-danger 2s infinite;
+  }
+  
+  @keyframes pulse-danger {
+    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+    70% { box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+  }
+  
+  .valor-flecha {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    font-size: 14px;
+    font-weight: bold;
+    min-width: 26px;
+    height: 26px;
+    line-height: 19px;
+    border-radius: 50%;
+    z-index: 2;
+  }
+  
+  .punto-btn {
+    font-size: 1.4rem;
+    font-weight: bold;
+    min-height: 60px;
+    transition: all 0.15s ease;
+  }
+  
+  .punto-btn:active {
+    transform: scale(0.95);
+  }
+  
+  #botoneraContainer {
+    animation: fadeIn 0.3s ease;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style> 
