@@ -106,11 +106,22 @@ app.get('/dashboard', ensureAuthenticated, async (req, res) => {
       resultado = await actividadService.obtenerActividadesRecientes(6, 1);
       console.log('Nueva consulta después de crear actividad:', resultado);
     }
+
+    // Si el usuario es administrador, obtener el ranking
+    let ranking = null;
+    if (req.user.isAdmin) {
+      const entrenamientoService = require('./services/entrenamientoService');
+      const fechaActual = new Date();
+      const mesActual = fechaActual.getMonth() + 1;
+      const anioActual = fechaActual.getFullYear();
+      ranking = await entrenamientoService.obtenerRankingPromedios(mesActual, anioActual);
+    }
     
     res.render('dashboard', {
       title: 'Panel de Control',
       user: req.user,
       actividades: resultado.actividades || [],
+      ranking: ranking,
       formatearFecha: require('./utils/helpers').formatearFecha,
       mensajeExito: req.flash('mensajeExito'),
       mensajeError: req.flash('mensajeError')
@@ -121,6 +132,7 @@ app.get('/dashboard', ensureAuthenticated, async (req, res) => {
       title: 'Panel de Control',
       user: req.user,
       actividades: [],
+      ranking: null,
       formatearFecha: require('./utils/helpers').formatearFecha,
       mensajeExito: req.flash('mensajeExito'),
       mensajeError: req.flash('mensajeError')

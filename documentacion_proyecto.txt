@@ -1,0 +1,419 @@
+# DOCUMENTACIÓN DEL SISTEMA DE TORNEOS DE ARQUERÍA
+
+## ÍNDICE
+1. Descripción General
+2. Estructura del Proyecto
+3. Modelos de Datos
+4. Controladores
+5. Servicios
+6. Vistas
+7. Rutas
+8. Middleware
+9. Utilidades
+10. Funcionalidades Principales
+11. Flujos de Usuario
+12. Configuración y Personalización
+13. Estadísticas y Rankings
+14. Feed de Actividades
+15. Seguridad
+16. Mejores Prácticas
+
+## 1. DESCRIPCIÓN GENERAL
+
+El Sistema de Torneos de Arquería es una aplicación web completa para la gestión de torneos, entrenamientos y estadísticas de arquería. Permite a los usuarios registrarse, participar en torneos, registrar entrenamientos personales, ver estadísticas de rendimiento y seguir la actividad de otros arqueros.
+
+### Tecnologías Utilizadas
+- **Backend**: Node.js, Express.js
+- **Base de Datos**: MongoDB con Mongoose
+- **Frontend**: EJS (Embedded JavaScript), Bootstrap 5
+- **Autenticación**: Passport.js
+- **Visualización de Datos**: Chart.js
+- **Manejo de Archivos**: Multer
+
+## 2. ESTRUCTURA DEL PROYECTO
+
+```
+/torneos_Arqueria
+├── public/                  # Archivos estáticos
+│   ├── css/                 # Hojas de estilo
+│   ├── js/                  # Scripts del cliente
+│   ├── uploads/             # Archivos subidos por usuarios
+│   └── img/                 # Imágenes estáticas
+├── src/                     # Código fuente
+│   ├── app.js               # Punto de entrada de la aplicación
+│   ├── config/              # Configuración de la aplicación
+│   ├── controllers/         # Controladores
+│   ├── middleware/          # Middleware personalizado
+│   ├── models/              # Modelos de datos
+│   ├── routes/              # Definición de rutas
+│   ├── services/            # Servicios de negocio
+│   └── utils/               # Utilidades y helpers
+├── views/                   # Plantillas EJS
+│   ├── admin/               # Vistas de administración
+│   ├── entrenamientos/      # Vistas de entrenamientos
+│   ├── torneos/             # Vistas de torneos
+│   ├── users/               # Vistas de usuarios
+│   ├── actividades/         # Vistas de actividades
+│   ├── partials/            # Componentes reutilizables
+│   └── layout.ejs           # Plantilla principal
+├── package.json             # Dependencias y scripts
+└── README.md                # Documentación básica
+```
+
+## 3. MODELOS DE DATOS
+
+### User
+- **Campos**: nombre, apellido, email, password, cedula, tipoArco, nivel, experiencia, experiencia_necesaria, isAdmin
+- **Relaciones**: Tiene entrenamientos, participa en torneos, tiene logros
+- **Funcionalidades**: Autenticación, progresión de nivel, estadísticas
+
+### Torneo
+- **Campos**: nombre, descripcion, fecha_inicio, fecha_fin, distancia, rondas, estado (activo, finalizado), creador
+- **Relaciones**: Tiene participantes, tiene tiradas
+- **Funcionalidades**: Registro de participantes, registro de tiradas, cálculo de resultados
+
+### Entrenamiento
+- **Campos**: nombre, descripcion, fecha, distancia, estado (activo, finalizado), usuario
+- **Relaciones**: Pertenece a un usuario, tiene tiradas
+- **Funcionalidades**: Registro de tiradas, cálculo de estadísticas
+
+### Actividad
+- **Campos**: usuario, tipo, mensaje, entidadId, entidadModelo, fecha, icono, color, metadatos, reacciones, comentarios
+- **Relaciones**: Pertenece a un usuario, puede relacionarse con diferentes entidades
+- **Funcionalidades**: Feed de actividades, notificaciones
+
+### Logro
+- **Campos**: titulo, descripcion, icono, nivel, puntos_exp, condicion
+- **Relaciones**: Puede ser desbloqueado por usuarios
+- **Funcionalidades**: Sistema de progresión, gamificación
+
+### AppConfig
+- **Campos**: logo, colors, styles, appName, lastModified, lastModifiedBy
+- **Funcionalidades**: Personalización de la aplicación
+
+## 4. CONTROLADORES
+
+### authController
+- **Funciones**: register, login, logout
+- **Descripción**: Maneja la autenticación de usuarios
+
+### userController
+- **Funciones**: getProfile, updateProfile, getUsers, getUserProfile
+- **Descripción**: Gestiona perfiles de usuario y listados
+
+### torneoController
+- **Funciones**: getTorneos, crearTorneo, getTorneoDetalle, registrarParticipante, getTiradasTorneo, registrarTirada, getResultados
+- **Descripción**: Gestiona torneos, participantes y tiradas
+
+### entrenamientoController
+- **Funciones**: getEntrenamientos, crearEntrenamiento, getEntrenamientoDetalle, registrarTirada, finalizarEntrenamiento, getEstadisticasEntrenamiento, getEstadisticasGenerales
+- **Descripción**: Gestiona entrenamientos personales y estadísticas
+
+### actividadController
+- **Funciones**: getFeed, getFeedActividades, getActividadesUsuario, postReaccion, postComentario
+- **Descripción**: Gestiona el feed de actividades y las interacciones
+
+### logroController
+- **Funciones**: getLogros, verificarLogros
+- **Descripción**: Gestiona logros y su desbloqueo
+
+### configController
+- **Funciones**: getConfig, updateConfig
+- **Descripción**: Gestiona la configuración y personalización de la aplicación
+
+### estadisticasController
+- **Funciones**: getRankings, getEstadisticasArquero
+- **Descripción**: Gestiona rankings y estadísticas detalladas
+
+## 5. SERVICIOS
+
+### actividadService
+- **Funciones**: registrarActividad, obtenerActividadesRecientes, obtenerActividadesUsuario, registrarEntrenamientoCompletado, registrarLogroDesbloqueado, registrarNivelAlcanzado
+- **Descripción**: Lógica de negocio para actividades y notificaciones
+
+### entrenamientoService
+- **Funciones**: crearEntrenamiento, obtenerEntrenamientos, obtenerEntrenamiento, registrarTirada, finalizarEntrenamiento, calcularEstadisticas, obtenerRankingPromedios
+- **Descripción**: Lógica de negocio para entrenamientos y estadísticas
+
+### logroService
+- **Funciones**: obtenerLogros, verificarLogros, desbloquearLogro, subirNivel
+- **Descripción**: Lógica de negocio para logros y progresión
+
+### torneoService
+- **Funciones**: crearTorneo, obtenerTorneos, obtenerTorneo, registrarParticipante, registrarTirada, calcularResultados
+- **Descripción**: Lógica de negocio para torneos y competiciones
+
+## 6. VISTAS
+
+### Layouts
+- **layout.ejs**: Plantilla principal con navbar y estructura común
+- **partials/**: Componentes reutilizables (mensajes, paginación, etc.)
+
+### Vistas de Usuario
+- **login.ejs, register.ejs**: Autenticación
+- **users/profile.ejs**: Perfil de usuario
+- **users/logros.ejs**: Logros del usuario
+
+### Vistas de Torneos
+- **torneos/index.ejs**: Listado de torneos
+- **torneos/crear.ejs**: Formulario de creación
+- **torneos/detalle.ejs**: Detalles de un torneo
+- **torneos/tiradas.ejs**: Registro de tiradas
+- **torneos/resultados.ejs**: Resultados del torneo
+
+### Vistas de Entrenamientos
+- **entrenamientos/index.ejs**: Listado de entrenamientos
+- **entrenamientos/crear.ejs**: Formulario de creación
+- **entrenamientos/detalle.ejs**: Detalles de un entrenamiento
+- **entrenamientos/tiradas.ejs**: Registro de tiradas
+- **entrenamientos/estadisticas.ejs**: Estadísticas de un entrenamiento
+- **entrenamientos/evolucion.ejs**: Evolución general
+
+### Vistas de Actividades
+- **actividades/feed.ejs**: Feed general de actividades
+- **actividades/usuario.ejs**: Actividades de un usuario
+
+### Vistas de Administración
+- **admin/config.ejs**: Configuración de la aplicación
+- **admin/rankings.ejs**: Rankings por distancia
+- **admin/estadisticas-arquero.ejs**: Estadísticas detalladas de un arquero
+
+## 7. RUTAS
+
+### Rutas de Autenticación
+- **GET/POST /register**: Registro de usuarios
+- **GET/POST /login**: Inicio de sesión
+- **GET /logout**: Cierre de sesión
+
+### Rutas de Usuario
+- **GET /users/profile**: Perfil del usuario actual
+- **GET /users/profile/:userId**: Perfil de otro usuario
+- **POST /users/profile**: Actualizar perfil
+- **GET /users/logros**: Logros del usuario
+- **GET /users**: Listado de usuarios (admin)
+
+### Rutas de Torneos
+- **GET /torneos**: Listado de torneos
+- **GET /torneos/crear**: Formulario de creación
+- **POST /torneos/crear**: Crear torneo
+- **GET /torneos/:id**: Detalles de un torneo
+- **POST /torneos/:id/participar**: Registrarse como participante
+- **GET /torneos/:id/tiradas**: Ver/registrar tiradas
+- **POST /torneos/:id/tiradas**: Registrar tirada
+- **GET /torneos/:id/resultados**: Ver resultados
+
+### Rutas de Entrenamientos
+- **GET /entrenamientos**: Listado de entrenamientos
+- **GET /entrenamientos/crear**: Formulario de creación
+- **POST /entrenamientos/crear**: Crear entrenamiento
+- **GET /entrenamientos/:id**: Detalles de un entrenamiento
+- **GET /entrenamientos/:id/tiradas**: Registrar tiradas
+- **POST /entrenamientos/:id/tiradas**: Guardar tirada
+- **POST /entrenamientos/:id/finalizar**: Finalizar entrenamiento
+- **GET /entrenamientos/:id/estadisticas**: Estadísticas del entrenamiento
+- **GET /entrenamientos/evolucion**: Evolución general
+
+### Rutas de Actividades
+- **GET /actividades**: Feed general de actividades
+- **GET /actividades/usuario/:userId**: Actividades de un usuario
+- **POST /actividades/:id/reaccion**: Añadir reacción
+- **POST /actividades/:id/comentario**: Añadir comentario
+
+### Rutas de Administración
+- **GET /admin/config**: Configuración de la aplicación
+- **POST /admin/config**: Actualizar configuración
+- **GET /admin/rankings**: Rankings por distancia
+- **GET /admin/estadisticas/:userId**: Estadísticas detalladas de un arquero
+
+## 8. MIDDLEWARE
+
+### auth.js
+- **ensureAuthenticated**: Verifica que el usuario esté autenticado
+- **ensureNotAuthenticated**: Verifica que el usuario no esté autenticado
+- **ensureAdmin**: Verifica que el usuario sea administrador
+
+### passport.js
+- Configuración de estrategias de autenticación
+- Serialización y deserialización de usuarios
+
+## 9. UTILIDADES
+
+### helpers.js
+- **formatearFecha**: Formatea fechas para mostrar
+- **calcularPromedio**: Calcula promedios de puntuación
+- **generarSlug**: Genera slugs para URLs amigables
+
+## 10. FUNCIONALIDADES PRINCIPALES
+
+### Sistema de Torneos
+- Creación y gestión de torneos
+- Registro de participantes
+- Registro de tiradas por rondas
+- Cálculo automático de resultados
+- Visualización de clasificaciones
+
+### Sistema de Entrenamientos
+- Creación y gestión de entrenamientos personales
+- Registro de tiradas con puntuaciones
+- Estadísticas detalladas por entrenamiento
+- Evolución general del rendimiento
+- Gráficos de progresión y distribución
+
+### Sistema de Logros y Progresión
+- Desbloqueo de logros basados en rendimiento
+- Sistema de niveles y experiencia
+- Visualización de logros desbloqueados
+- Notificaciones de nuevos logros
+
+### Feed de Actividades
+- Registro automático de actividades importantes
+- Feed general de toda la comunidad
+- Feed personal de actividades propias
+- Interacción mediante reacciones y comentarios
+- Carrusel de actividades recientes en el dashboard
+
+### Estadísticas y Rankings
+- Estadísticas detalladas por entrenamiento
+- Estadísticas generales de evolución
+- Rankings por distancia
+- Análisis detallado del rendimiento de cada arquero
+- Gráficos de progresión y distribución
+
+### Personalización (Admin)
+- Cambio de logo de la aplicación
+- Personalización de colores
+- Ajustes de estilos visuales
+- Generación automática de CSS personalizado
+
+## 11. FLUJOS DE USUARIO
+
+### Registro y Autenticación
+1. Usuario se registra proporcionando datos básicos
+2. Inicia sesión con email y contraseña
+3. Accede al dashboard principal
+
+### Participación en Torneos
+1. Usuario busca torneos disponibles
+2. Se registra como participante
+3. Registra sus tiradas en cada ronda
+4. Visualiza resultados y clasificación
+
+### Entrenamientos Personales
+1. Usuario crea un nuevo entrenamiento
+2. Registra tiradas con puntuaciones
+3. Finaliza el entrenamiento
+4. Visualiza estadísticas y progresión
+
+### Interacción Social
+1. Usuario ve actividades en el feed
+2. Reacciona o comenta en actividades
+3. Visualiza perfiles de otros arqueros
+4. Sigue su progreso en rankings
+
+### Administración
+1. Administrador accede a panel de control
+2. Gestiona usuarios y torneos
+3. Visualiza rankings y estadísticas
+4. Personaliza la apariencia de la aplicación
+
+## 12. CONFIGURACIÓN Y PERSONALIZACIÓN
+
+### Opciones de Personalización
+- **Logo**: Subida de imagen personalizada
+- **Nombre de la Aplicación**: Cambio del título principal
+- **Colores**: Personalización de colores principales
+  - Barra de navegación
+  - Color principal
+  - Color secundario
+  - Color de éxito
+  - Color de advertencia
+- **Estilos**: Ajustes visuales
+  - Radio de borde de tarjetas
+  - Radio de borde de botones
+
+### Implementación Técnica
+- Almacenamiento en base de datos (modelo AppConfig)
+- Generación dinámica de CSS personalizado
+- Carga automática en todas las vistas
+- Vista previa en tiempo real de cambios
+
+## 13. ESTADÍSTICAS Y RANKINGS
+
+### Estadísticas de Entrenamiento
+- Promedio por flecha
+- Distribución de puntuaciones
+- Mejor y peor tirada
+- Tendencia de rendimiento
+- Precisión por zonas
+
+### Estadísticas Generales
+- Evolución del promedio a lo largo del tiempo
+- Comparativa por distancias
+- Mejora porcentual
+- Total de flechas y entrenamientos
+
+### Rankings
+- Ranking por distancia
+- Filtrado por entrenamientos con más de 2 flechas por ronda
+- Top 10 arqueros por distancia
+- Visualización detallada del rendimiento de cada arquero
+
+## 14. FEED DE ACTIVIDADES
+
+### Tipos de Actividades
+- Entrenamiento completado
+- Logro desbloqueado
+- Nivel alcanzado
+- Participación en torneo
+
+### Características
+- Registro automático de eventos importantes
+- Visualización en tiempo real
+- Carrusel rotativo en dashboard
+- Feed completo con paginación
+- Interacción social mediante reacciones y comentarios
+
+## 15. SEGURIDAD
+
+### Autenticación
+- Almacenamiento seguro de contraseñas (hash + salt)
+- Sesiones persistentes
+- Protección de rutas mediante middleware
+
+### Autorización
+- Verificación de propiedad de recursos
+- Restricción de acciones por rol (admin/usuario)
+- Validación de datos de entrada
+
+### Protección de Datos
+- Sanitización de entradas de usuario
+- Validación de archivos subidos
+- Limitación de tamaño de archivos
+
+## 16. MEJORES PRÁCTICAS
+
+### Estructura del Código
+- Separación de responsabilidades (MVC)
+- Uso de servicios para lógica de negocio
+- Controladores ligeros
+
+### Rendimiento
+- Paginación de resultados
+- Carga diferida de recursos
+- Optimización de consultas a base de datos
+
+### Experiencia de Usuario
+- Diseño responsive para móviles y escritorio
+- Feedback inmediato de acciones
+- Mensajes de error y éxito claros
+- Navegación intuitiva
+
+### Mantenibilidad
+- Código comentado y documentado
+- Nombres descriptivos de variables y funciones
+- Modularización de componentes
+- Reutilización de código
+
+---
+
+Este documento proporciona una visión general del Sistema de Torneos de Arquería. Para información más detallada sobre componentes específicos, consulte el código fuente y los comentarios en cada archivo. 

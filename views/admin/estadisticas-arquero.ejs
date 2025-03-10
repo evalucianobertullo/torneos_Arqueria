@@ -1,0 +1,230 @@
+<div class="container">
+  <div class="row">
+    <div class="col-12 mb-4">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+              <i class="fas fa-chart-line me-2"></i> Estadísticas de <%= usuario.nombre %> <%= usuario.apellido %>
+            </h4>
+            <div>
+              <a href="/admin/rankings" class="btn btn-outline-light btn-sm me-2">
+                <i class="fas fa-arrow-left me-2"></i> Volver a Rankings
+              </a>
+              <a href="/users/profile/<%= usuario._id %>" class="btn btn-outline-light btn-sm">
+                <i class="fas fa-user me-2"></i> Ver Perfil
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <% if (Object.keys(estadisticas).length === 0) { %>
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i> No hay datos de entrenamiento para este arquero
+            </div>
+          <% } else { %>
+            <div class="accordion" id="estadisticasAccordion">
+              <% Object.keys(estadisticas).sort((a, b) => parseInt(a) - parseInt(b)).forEach((distancia, index) => { %>
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="heading<%= distancia %>">
+                    <button class="accordion-button <%= index === 0 ? '' : 'collapsed' %>" type="button" 
+                            data-bs-toggle="collapse" data-bs-target="#collapse<%= distancia %>" 
+                            aria-expanded="<%= index === 0 ? 'true' : 'false' %>" 
+                            aria-controls="collapse<%= distancia %>">
+                      <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                        <strong><%= distancia %> metros</strong>
+                        <div>
+                          <span class="badge bg-success me-2">
+                            Promedio: <%= estadisticas[distancia].promedioGeneral %>
+                          </span>
+                          <span class="badge bg-primary me-2">
+                            Mejor: <%= estadisticas[distancia].mejorPromedio %>
+                          </span>
+                          <span class="badge bg-info">
+                            <%= estadisticas[distancia].entrenamientos.length %> entrenamientos
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                  </h2>
+                  <div id="collapse<%= distancia %>" 
+                       class="accordion-collapse collapse <%= index === 0 ? 'show' : '' %>" 
+                       aria-labelledby="heading<%= distancia %>" 
+                       data-bs-parent="#estadisticasAccordion">
+                    <div class="accordion-body">
+                      <!-- Gráfico de progresión -->
+                      <div class="mb-4">
+                        <h5 class="border-bottom pb-2">Progresión</h5>
+                        <canvas id="grafico<%= distancia %>" width="400" height="200"></canvas>
+                      </div>
+
+                      <!-- Tabla de entrenamientos -->
+                      <h5 class="border-bottom pb-2">Detalle de Entrenamientos</h5>
+                      <div class="table-responsive">
+                        <table class="table table-hover">
+                          <thead class="table-light">
+                            <tr>
+                              <th>Fecha</th>
+                              <th class="text-end">Promedio</th>
+                              <th class="text-end">Total Puntos</th>
+                              <th class="text-end">Total Flechas</th>
+                              <th class="text-center">Distribución</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <% estadisticas[distancia].entrenamientos.forEach(entrenamiento => { %>
+                              <tr>
+                                <td><%= formatearFecha(entrenamiento.fecha) %></td>
+                                <td class="text-end fw-bold"><%= entrenamiento.promedio %></td>
+                                <td class="text-end"><%= entrenamiento.totalPuntos %></td>
+                                <td class="text-end"><%= entrenamiento.totalFlechas %></td>
+                                <td class="text-center">
+                                  <button type="button" class="btn btn-sm btn-outline-info" 
+                                          data-bs-toggle="modal" 
+                                          data-bs-target="#modalDistribucion<%= distancia %>_<%= entrenamiento.fecha.getTime() %>">
+                                    <i class="fas fa-chart-pie me-1"></i> Ver Distribución
+                                  </button>
+                                </td>
+                              </tr>
+
+                              <!-- Modal de distribución -->
+                              <div class="modal fade" id="modalDistribucion<%= distancia %>_<%= entrenamiento.fecha.getTime() %>" 
+                                   tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                  <div class="modal-content">
+                                    <div class="modal-header">
+                                      <h5 class="modal-title">
+                                        Distribución de Puntos - <%= formatearFecha(entrenamiento.fecha) %>
+                                      </h5>
+                                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                      <canvas id="distribucion<%= distancia %>_<%= entrenamiento.fecha.getTime() %>" 
+                                              width="400" height="200"></canvas>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            <% }); %>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  <% Object.keys(estadisticas).forEach(distancia => { %>
+    // Gráfico de progresión
+    new Chart(document.getElementById('grafico<%= distancia %>'), {
+      type: 'line',
+      data: {
+        labels: <%- JSON.stringify(estadisticas[distancia].progresion.map(p => formatearFecha(p.fecha))) %>,
+        datasets: [{
+          label: 'Promedio por Flecha',
+          data: <%- JSON.stringify(estadisticas[distancia].progresion.map(p => p.promedio)) %>,
+          borderColor: '#0d6efd',
+          tension: 0.1,
+          fill: false
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Progresión del Promedio - <%= distancia %> metros'
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            title: {
+              display: true,
+              text: 'Promedio'
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Fecha'
+            }
+          }
+        }
+      }
+    });
+
+    // Gráficos de distribución para cada entrenamiento
+    <% estadisticas[distancia].entrenamientos.forEach(entrenamiento => { %>
+      <% 
+        const distribucion = Array(11).fill(0);
+        entrenamiento.tiradas.forEach(tirada => {
+          if (tirada.puntos) {
+            tirada.puntos.forEach(punto => {
+              distribucion[punto]++;
+            });
+          }
+        });
+      %>
+      new Chart(document.getElementById('distribucion<%= distancia %>_<%= entrenamiento.fecha.getTime() %>'), {
+        type: 'bar',
+        data: {
+          labels: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
+          datasets: [{
+            label: 'Cantidad de Flechas',
+            data: <%- JSON.stringify(distribucion) %>,
+            backgroundColor: [
+              '#dc3545', // 0
+              '#dc3545', // 1
+              '#ffc107', // 2
+              '#ffc107', // 3
+              '#ffc107', // 4
+              '#ffc107', // 5
+              '#198754', // 6
+              '#198754', // 7
+              '#198754', // 8
+              '#0d6efd', // 9
+              '#0d6efd'  // 10
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Distribución de Puntuaciones'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Cantidad de Flechas'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Puntuación'
+              }
+            }
+          }
+        }
+      });
+    <% }); %>
+  <% }); %>
+});</script> 

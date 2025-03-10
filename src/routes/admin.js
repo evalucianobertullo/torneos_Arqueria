@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const { ensureAuthenticated, ensureAdmin } = require('../middleware/auth');
 const configController = require('../controllers/configController');
+const estadisticasController = require('../controllers/estadisticasController');
 
 // Configurar multer para la subida de archivos
 const storage = multer.diskStorage({
@@ -48,5 +49,9 @@ router.get('/config/reset', ensureAuthenticated, ensureAdmin, async (req, res) =
     res.redirect('/admin/config');
   }
 });
+
+// Rutas de rankings y estadísticas
+router.get('/rankings', ensureAuthenticated, ensureAdmin, estadisticasController.getRankings);
+router.get('/estadisticas/:userId', ensureAuthenticated, ensureAdmin, estadisticasController.getEstadisticasArquero);
 
 module.exports = router; 

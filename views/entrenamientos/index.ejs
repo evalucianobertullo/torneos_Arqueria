@@ -9,6 +9,9 @@
           <a href="/entrenamientos/evolucion" class="btn btn-info me-2">
             <i class="fas fa-chart-line me-2"></i> Ver Mi Evolución
           </a>
+          <button id="toggleFinalizados" class="btn btn-secondary me-2">
+            <i class="fas fa-eye me-2"></i> Mostrar Finalizados
+          </button>
           <a href="/entrenamientos/crear" class="btn btn-primary">
             <i class="fas fa-plus-circle me-2"></i> Nuevo Entrenamiento
           </a>
@@ -30,8 +33,11 @@
     </div>
   
     <% if (entrenamientos && entrenamientos.length > 0) { %>
-      <% entrenamientos.forEach(entrenamiento => { %>
-        <div class="col-lg-4 col-md-6 mb-4">
+      <!-- Vista de tarjetas para entrenamientos activos -->
+      <% entrenamientos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+         .filter(entrenamiento => entrenamiento.estado === 'activo')
+         .forEach(entrenamiento => { %>
+        <div class="col-lg-4 col-md-6 mb-4 entrenamiento-card">
           <div class="card shadow h-100">
             <div class="card-header bg-primary bg-gradient text-white">
               <div class="d-flex justify-content-between align-items-center">
@@ -94,6 +100,62 @@
           </div>
         </div>
       <% }) %>
+
+      <!-- Vista compacta en tabla para entrenamientos finalizados -->
+      <div class="col-12 entrenamientos-finalizados d-none">
+        <div class="card shadow">
+          <div class="card-header bg-secondary text-white">
+            <h3 class="h5 mb-0">
+              <i class="fas fa-archive me-2"></i> Entrenamientos Finalizados
+            </h3>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover table-striped">
+                <thead class="table-light">
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Nombre</th>
+                    <th>Distancia</th>
+                    <th>Rondas</th>
+                    <th>Puntuación Total</th>
+                    <th>Promedio</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% entrenamientos
+                      .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+                      .filter(entrenamiento => entrenamiento.estado === 'finalizado')
+                      .forEach(entrenamiento => { 
+                        const puntuacionTotal = entrenamiento.tiradas.reduce((sum, t) => sum + t.total, 0);
+                        const promedio = entrenamiento.tiradas.length > 0 ? 
+                          (puntuacionTotal / (entrenamiento.tiradas.length * entrenamiento.flechasPorTirada)).toFixed(1) : 0;
+                  %>
+                    <tr>
+                      <td><%= formatearFecha(entrenamiento.fecha) %></td>
+                      <td><%= entrenamiento.nombre %></td>
+                      <td><%= entrenamiento.distancia %></td>
+                      <td><%= entrenamiento.tiradas.length %> / <%= entrenamiento.rondas %></td>
+                      <td>
+                        <span class="badge bg-primary"><%= puntuacionTotal %></span>
+                      </td>
+                      <td>
+                        <span class="badge bg-info"><%= promedio %></span>
+                      </td>
+                      <td>
+                        <a href="/entrenamientos/<%= entrenamiento._id %>" class="btn btn-sm btn-outline-primary">
+                          <i class="fas fa-info-circle"></i>
+                        </a>
+                      </td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
     <% } else { %>
       <div class="col-12">
         <div class="alert alert-info">
@@ -108,6 +170,24 @@
     <% } %>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const toggleBtn = document.getElementById('toggleFinalizados');
+  const finalizadosTable = document.querySelector('.entrenamientos-finalizados');
+  let mostrandoFinalizados = false;
+
+  toggleBtn.addEventListener('click', function() {
+    mostrandoFinalizados = !mostrandoFinalizados;
+    finalizadosTable.classList.toggle('d-none');
+    
+    // Actualizar texto del botón
+    toggleBtn.innerHTML = mostrandoFinalizados ? 
+      '<i class="fas fa-eye-slash me-2"></i> Ocultar Finalizados' : 
+      '<i class="fas fa-eye me-2"></i> Mostrar Finalizados';
+  });
+});
+</script>
 
 <div class="d-sm-none">
   <a href="/dashboard" class="btn btn-primary mobile-float-btn">

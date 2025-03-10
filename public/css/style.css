@@ -252,4 +252,45 @@ body {
 /* Estilos para el contenedor del carrusel */
 .carousel-inner {
   overflow: visible;
+}
+
+/* Colores de medallas */
+.text-bronze {
+  color: #cd7f32;
+}
+
+/* Ajustes para el ranking */
+.accordion-button:not(.collapsed) {
+  background-color: #f8f9fa;
+  color: #000;
+}
+
+.accordion-button:focus {
+  box-shadow: none;
+  border-color: rgba(0,0,0,.125);
+}
+
+/* Ajustes para la tabla de ranking */
+.table-responsive {
+  scrollbar-width: thin;
+  scrollbar-color: #dee2e6 #fff;
+}
+
+.table-responsive::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: #fff;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background-color: #dee2e6;
+  border-radius: 4px;
+}
+
+/* Estilos para las medallas */
+.fa-medal {
+  font-size: 1.2em;
 } 

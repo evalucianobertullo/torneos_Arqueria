@@ -99,7 +99,8 @@
                   </div>
                 </div>
                 <div class="card-body p-0">
-                  <div class="table-responsive">
+                  <!-- Vista para escritorio -->
+                  <div class="table-responsive d-none d-md-block">
                     <table class="table table-hover mb-0" id="tablaParticipantesPendientes">
                       <thead class="table-light">
                         <tr>
@@ -134,33 +135,154 @@
                       </tbody>
                     </table>
                   </div>
+                  
+                  <!-- Vista optimizada para móvil: Lista de tarjetas -->
+                  <div class="d-md-none">
+                    <div class="list-group list-group-flush">
+                      <% participantesDisponibles.forEach(participante => { %>
+                        <div class="list-group-item participante-row">
+                          <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                              <h5 class="mb-1"><%= participante.usuario.nombre %> <%= participante.usuario.apellido %></h5>
+                              <p class="mb-1 small text-muted">
+                                <span class="badge bg-light text-dark border"><%= participante.usuario.tipoArco || 'Sin arco' %></span>
+                                <span class="ms-2"><%= participante.tiradas ? participante.tiradas.length : 0 %> / <%= torneo.rondas %> rondas</span>
+                              </p>
+                            </div>
+                            <button 
+                              class="btn btn-success registrar-btn" 
+                              data-participante-id="<%= participante.usuario._id %>"
+                              data-participante-nombre="<%= participante.usuario.nombre %> <%= participante.usuario.apellido %>">
+                              <i class="fas fa-edit me-1"></i> Registrar
+                            </button>
+                          </div>
+                        </div>
+                      <% }); %>
+                    </div>
+                  </div>
                 </div>
               </div>
               
               <!-- Formulario de registro de tiradas (inicialmente oculto) -->
               <div id="registroTiradaForm" class="card border-success mb-4" style="display: none;">
                 <div class="card-header bg-success text-white">
-                  <h3 class="h5 mb-0">
-                    <i class="fas fa-arrow-alt-circle-right me-2"></i> 
-                    Registrar tirada para <span id="nombreParticipanteSeleccionado"></span>
-                  </h3>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="h5 mb-0">
+                      <i class="fas fa-arrow-alt-circle-right me-2"></i> 
+                      <span id="nombreParticipanteSeleccionado"></span>
+                    </h3>
+                    <button type="button" id="cancelarRegistroBtn" class="btn-close btn-close-white"></button>
+                  </div>
                 </div>
                 <div class="card-body">
                   <form action="/torneos/<%= torneo._id %>/registrar-tirada" method="POST" class="needs-validation" novalidate>
                     <input type="hidden" name="ronda" value="<%= rondaActual %>">
                     <input type="hidden" name="participanteId" id="participanteIdInput" value="">
                     
-                    <!-- Campos para puntuaciones - NUEVO DISEÑO MÓVIL -->
-                    <div class="row mb-4">
+                    <!-- Campos para puntuaciones - NUEVO DISEÑO MÓVIL OPTIMIZADO -->
+                    <div class="row mb-3">
                       <div class="col-12">
                         <div class="card">
                           <div class="card-header bg-light">
                             <h4 class="mb-0"><i class="fas fa-arrows-alt me-2"></i> Selección de flechas</h4>
                           </div>
                           <div class="card-body">
-                            <div class="row flechas-selector mb-2">
+                            <!-- Vista móvil - Selector de flecha con carrusel -->
+                            <div class="d-md-none">
+                              <div class="d-flex justify-content-between align-items-center mb-2">
+                                <button type="button" class="btn btn-sm btn-secondary" id="prevFlechaBtn">
+                                  <i class="fas fa-arrow-left"></i>
+                                </button>
+                                <div class="text-center">
+                                  <h5 class="mb-0">Flecha <span id="flechaActualMobile">1</span> de <%= torneo.flechasPorTirada %></h5>
+                                  <div class="mt-2">
+                                    <span id="valorFlechaMobile" class="display-1 fw-bold">-</span>
+                                  </div>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-secondary" id="nextFlechaBtn">
+                                  <i class="fas fa-arrow-right"></i>
+                                </button>
+                              </div>
+                              
+                              <!-- Indicadores de flechas -->
+                              <div class="d-flex justify-content-center mb-3">
+                                <% for(let i = 0; i < torneo.flechasPorTirada; i++) { %>
+                                  <div class="flecha-indicator mx-1" data-flecha="<%= i %>">
+                                    <span class="badge rounded-pill bg-secondary">
+                                      <%= i+1 %>
+                                    </span>
+                                  </div>
+                                <% } %>
+                              </div>
+                              
+                              <!-- Botonera de puntuación móvil (siempre visible) -->
+                              <div class="botonera-mobile">
+                                <!-- 9-10: fondo amarillo con letras en negro -->
+                                <div class="d-flex mb-2 justify-content-between">
+                                  <% for(let j = 10; j >= 9; j--) { %>
+                                    <button type="button" 
+                                        class="btn punto-btn-mobile btn-lg btn-warning text-dark" 
+                                        style="width: 48%"
+                                        data-punto="<%= j %>">
+                                      <%= j %>
+                                    </button>
+                                  <% } %>
+                                </div>
+                                
+                                <!-- 7-8: fondo rojo letras negro -->
+                                <div class="d-flex mb-2 justify-content-between">
+                                  <% for(let j = 8; j >= 7; j--) { %>
+                                    <button type="button" 
+                                        class="btn punto-btn-mobile btn-lg btn-danger text-dark" 
+                                        style="width: 48%"
+                                        data-punto="<%= j %>">
+                                      <%= j %>
+                                    </button>
+                                  <% } %>
+                                </div>
+                                
+                                <!-- 5-6: fondo celeste letras en negro -->
+                                <div class="d-flex mb-2 justify-content-between">
+                                  <% for(let j = 6; j >= 5; j--) { %>
+                                    <button type="button" 
+                                        class="btn punto-btn-mobile btn-lg btn-info text-dark" 
+                                        style="width: 48%"
+                                        data-punto="<%= j %>">
+                                      <%= j %>
+                                    </button>
+                                  <% } %>
+                                </div>
+                                
+                                <!-- 3-4: fondo negro con letras blancas -->
+                                <div class="d-flex mb-2 justify-content-between">
+                                  <% for(let j = 4; j >= 3; j--) { %>
+                                    <button type="button" 
+                                        class="btn punto-btn-mobile btn-lg btn-dark text-white" 
+                                        style="width: 48%"
+                                        data-punto="<%= j %>">
+                                      <%= j %>
+                                    </button>
+                                  <% } %>
+                                </div>
+                                
+                                <!-- 0-2: fondo blanco con letra negra -->
+                                <div class="d-flex justify-content-between">
+                                  <% for(let j = 2; j >= 0; j--) { %>
+                                    <button type="button" 
+                                        class="btn punto-btn-mobile btn-lg btn-outline-dark" 
+                                        style="width: 31%"
+                                        data-punto="<%= j %>">
+                                      <%= j %>
+                                    </button>
+                                  <% } %>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <!-- Vista escritorio - Todas las flechas -->
+                            <div class="row flechas-selector d-none d-md-flex">
                               <% for(let i = 0; i < torneo.flechasPorTirada; i++) { %>
-                                <div class="col-4 col-md-2 mb-2">
+                                <div class="col-md-4 col-lg-3 mb-2">
                                   <button type="button" 
                                       class="btn btn-outline-primary btn-flecha w-100" 
                                       data-flecha="<%= i %>"
@@ -168,13 +290,12 @@
                                     <span class="numero-flecha">Flecha <%= i+1 %></span>
                                     <span class="valor-flecha badge bg-secondary d-none">-</span>
                                   </button>
-                                  <input type="hidden" name="puntos[<%= i %>]" id="puntoInput<%= i %>" required value="">
                                 </div>
                               <% } %>
                             </div>
 
-                            <!-- Contenedor de botonera (aparece solo cuando se selecciona una flecha) -->
-                            <div id="botoneraContainer" class="mt-3 d-none">
+                            <!-- Contenedor de botonera para escritorio (aparece solo cuando se selecciona una flecha) -->
+                            <div id="botoneraContainer" class="mt-3 d-none d-md-block d-none">
                               <div class="card border-primary">
                                 <div class="card-header bg-primary text-white">
                                   <div class="d-flex justify-content-between align-items-center">
@@ -245,20 +366,47 @@
                                 </div>
                               </div>
                             </div>
+                            
+                            <!-- Inputs ocultos para todos los valores -->
+                            <% for(let i = 0; i < torneo.flechasPorTirada; i++) { %>
+                              <input type="hidden" name="puntos[<%= i %>]" id="puntoInput<%= i %>" required value="">
+                            <% } %>
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                      <div class="h4">Total: <span id="puntuacion-total">0</span></div>
-                      <div>
-                        <button type="button" id="cancelarRegistroBtn" class="btn btn-outline-secondary me-2">
-                          <i class="fas fa-times me-1"></i> Cancelar
-                        </button>
-                        <button type="submit" class="btn btn-success">
-                          <i class="fas fa-save me-2"></i> Guardar tirada
-                        </button>
+                    <!-- Botón de guardar -->
+                    <div class="d-md-flex justify-content-end d-none">
+                      <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-save me-2"></i> Guardar tirada
+                      </button>
+                    </div>
+                    
+                    <!-- Botón para móvil -->
+                    <div class="d-md-none mb-3">
+                      <button type="submit" class="btn btn-success btn-lg w-100 py-3">
+                        <i class="fas fa-save me-2"></i> Guardar tirada
+                      </button>
+                    </div>
+                    
+                    <!-- Resumen de puntuación compacto -->
+                    <div class="card">
+                      <div class="card-body py-2">
+                        <div class="d-flex align-items-center justify-content-between">
+                          <div class="d-flex align-items-center gap-2">
+                            <% for(let i = 0; i < torneo.flechasPorTirada; i++) { %>
+                              <div class="text-center">
+                                <div class="badge bg-light text-dark border" style="min-width: 30px;" id="resumenFlecha<%= i %>">-</div>
+                                <div class="small text-muted" style="font-size: 0.7rem;">F<%= i+1 %></div>
+                              </div>
+                            <% } %>
+                          </div>
+                          <div class="ms-3 d-flex align-items-center">
+                            <span class="text-muted me-2">Total:</span>
+                            <span id="puntuacion-total" class="badge bg-success fs-5">0</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </form>
@@ -573,6 +721,23 @@
     
     let flechaSeleccionadaIndice = null;
     
+    // Variables para la nueva interfaz móvil
+    const prevFlechaBtn = document.getElementById('prevFlechaBtn');
+    const nextFlechaBtn = document.getElementById('nextFlechaBtn');
+    const flechaActualMobile = document.getElementById('flechaActualMobile');
+    const valorFlechaMobile = document.getElementById('valorFlechaMobile');
+    const flechaIndicators = document.querySelectorAll('.flecha-indicator');
+    const puntoBtnsMobile = document.querySelectorAll('.punto-btn-mobile');
+    const resumenFlechas = [];
+    
+    // Inicializar array de resumen
+    for(let i = 0; i < <%= torneo.flechasPorTirada %>; i++) {
+      resumenFlechas.push(document.getElementById(`resumenFlecha${i}`));
+    }
+    
+    // Variable para seguimiento de la flecha actual en móvil
+    let flechaActivaIdx = 0;
+    
     // Función de búsqueda para participantes pendientes
     if (buscarParticipanteInput) {
       buscarParticipanteInput.addEventListener('input', function() {
@@ -631,15 +796,22 @@
           // Ocultar la botonera si estaba visible
           botoneraContainer.classList.add('d-none');
           
-          // Mostrar el formulario con una animación suave
+          // Mostrar el formulario con animación
           registroForm.style.display = 'block';
-          registroForm.scrollIntoView({ behavior: 'smooth' });
+          // Forzar un reflow para que la transición funcione
+          registroForm.offsetHeight;
+          registroForm.classList.add('show');
           
-          // Opcional: resaltar la fila seleccionada
+          // Desplazar suavemente hacia el formulario
+          setTimeout(() => {
+            registroForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 100);
+          
+          // Resaltar la fila seleccionada
           participanteRows.forEach(row => {
             row.classList.remove('table-info');
           });
-          this.closest('tr').classList.add('table-info');
+          this.closest('tr, .list-group-item').classList.add('table-info');
         });
       });
     }
@@ -647,7 +819,12 @@
     // Ocultar formulario al cancelar
     if (cancelarBtn) {
       cancelarBtn.addEventListener('click', function() {
-        registroForm.style.display = 'none';
+        registroForm.classList.remove('show');
+        setTimeout(() => {
+          registroForm.style.display = 'none';
+          // Desplazar suavemente hacia arriba
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 300);
         
         // Quitar resaltado de filas
         participanteRows.forEach(row => {
@@ -655,155 +832,186 @@
         });
       });
     }
-    
-    // Gestión de selección de flechas
-    if (btnsFlechas.length > 0) {
-      btnsFlechas.forEach(btn => {
-        btn.addEventListener('click', function() {
-          const indiceFlecha = parseInt(this.getAttribute('data-flecha'));
-          flechaSeleccionadaIndice = indiceFlecha;
-          
-          // Actualizar el texto de la botonera
-          flechaSeleccionadaText.textContent = `Flecha ${indiceFlecha + 1}`;
-          
-          // Mostrar la botonera
-          botoneraContainer.classList.remove('d-none');
-          
-          // Desplazar la vista a la botonera
-          botoneraContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          
-          // Opcional: resaltar el botón seleccionado
-          btnsFlechas.forEach(b => {
-            b.classList.remove('active');
-          });
-          this.classList.add('active');
-        });
+
+    // Manejar el envío del formulario
+    const form = document.querySelector('form.needs-validation');
+    if (form) {
+      form.addEventListener('submit', function(event) {
+        if (!this.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        } else {
+          // Si el formulario es válido, desplazar hacia arriba antes de enviar
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        this.classList.add('was-validated');
       });
     }
     
-    // Cerrar botonera
-    if (cerrarBotonera) {
-      cerrarBotonera.addEventListener('click', function() {
-        botoneraContainer.classList.add('d-none');
-        
-        // Quitar resaltado del botón seleccionado
-        btnsFlechas.forEach(b => {
-          b.classList.remove('active');
-        });
-        
-        flechaSeleccionadaIndice = null;
+    // Inicializar la interfaz móvil
+    if (prevFlechaBtn && nextFlechaBtn) {
+      actualizarNavegacionFlechas();
+      
+      // Manejar navegación entre flechas
+      prevFlechaBtn.addEventListener('click', function() {
+        if (flechaActivaIdx > 0) {
+          flechaActivaIdx--;
+          actualizarNavegacionFlechas();
+        }
       });
-    }
-    
-    // Gestionar la selección de puntuación
-    if (btnsPuntos.length > 0) {
-      btnsPuntos.forEach(btn => {
+      
+      nextFlechaBtn.addEventListener('click', function() {
+        if (flechaActivaIdx < <%= torneo.flechasPorTirada - 1 %>) {
+          flechaActivaIdx++;
+          actualizarNavegacionFlechas();
+        }
+      });
+      
+      // Manejar clic en indicadores de flecha
+      flechaIndicators.forEach((indicator, idx) => {
+        indicator.addEventListener('click', function() {
+          flechaActivaIdx = idx;
+          actualizarNavegacionFlechas();
+        });
+      });
+      
+      // Manejar selección de puntos en móvil
+      puntoBtnsMobile.forEach(btn => {
         btn.addEventListener('click', function() {
-          if (flechaSeleccionadaIndice === null) return;
-          
           const punto = this.getAttribute('data-punto');
-          const flechaInput = document.getElementById(`puntoInput${flechaSeleccionadaIndice}`);
-          const flechaBtn = document.getElementById(`btnFlecha${flechaSeleccionadaIndice}`);
+          const flechaInput = document.getElementById(`puntoInput${flechaActivaIdx}`);
           
           // Actualizar el valor del input
           flechaInput.value = punto;
           
-          // Actualizar visualmente el botón de la flecha
-          flechaBtn.classList.remove('btn-outline-primary', 'active');
-          flechaBtn.classList.add('btn-success');
+          // Actualizar visualmente el valor en móvil
+          valorFlechaMobile.textContent = punto;
           
-          // Mostrar el valor en el badge
-          const valorBadge = flechaBtn.querySelector('.valor-flecha');
-          valorBadge.textContent = punto;
-          valorBadge.classList.remove('d-none', 'bg-secondary');
-          
-          // Establecer el color del badge según el valor
-          valorBadge.className = 'valor-flecha badge';
+          // Establecer el color del valor según el punto
+          valorFlechaMobile.className = 'display-1 fw-bold';
           if (punto <= 2) {
-            valorBadge.classList.add('bg-white', 'text-dark', 'border', 'border-dark');
+            valorFlechaMobile.classList.add('text-dark');
           } else if (punto <= 4) {
-            valorBadge.classList.add('bg-dark', 'text-white');
+            valorFlechaMobile.classList.add('text-dark');
           } else if (punto <= 6) {
-            valorBadge.classList.add('bg-info', 'text-dark');
+            valorFlechaMobile.classList.add('text-info');
           } else if (punto <= 8) {
-            valorBadge.classList.add('bg-danger', 'text-dark');
+            valorFlechaMobile.classList.add('text-danger');
           } else {
-            valorBadge.classList.add('bg-warning', 'text-dark');
+            valorFlechaMobile.classList.add('text-warning');
           }
+          
+          // Actualizar el indicador de flecha
+          actualizarIndicadorFlecha(flechaActivaIdx, punto);
+          
+          // Actualizar el resumen
+          actualizarResumenFlecha(flechaActivaIdx, punto);
           
           // Calcular el total
           calcularTotal();
           
-          // Ocultar la botonera
-          botoneraContainer.classList.add('d-none');
-          
-          // Resetear la selección
-          flechaSeleccionadaIndice = null;
-          
-          // Opcional: seleccionar automáticamente la siguiente flecha sin valor
-          const siguienteFlecha = Array.from(puntuacionInputs).findIndex(input => input.value === '');
-          if (siguienteFlecha !== -1) {
+          // Avanzar automáticamente a la siguiente flecha si no es la última
+          if (flechaActivaIdx < <%= torneo.flechasPorTirada - 1 %>) {
             setTimeout(() => {
-              document.getElementById(`btnFlecha${siguienteFlecha}`).click();
+              flechaActivaIdx++;
+              actualizarNavegacionFlechas();
             }, 300);
           }
         });
       });
     }
     
+    // Función para actualizar la navegación de flechas en móvil
+    function actualizarNavegacionFlechas() {
+      // Actualizar texto de flecha actual
+      flechaActualMobile.textContent = flechaActivaIdx + 1;
+      
+      // Actualizar estado de botones de navegación
+      prevFlechaBtn.disabled = flechaActivaIdx === 0;
+      nextFlechaBtn.disabled = flechaActivaIdx === <%= torneo.flechasPorTirada - 1 %>;
+      
+      // Actualizar indicadores de flecha
+      flechaIndicators.forEach((indicator, idx) => {
+        const badge = indicator.querySelector('.badge');
+        if (idx === flechaActivaIdx) {
+          badge.classList.remove('bg-secondary');
+          badge.classList.add('bg-primary');
+        } else {
+          const input = document.getElementById(`puntoInput${idx}`);
+          if (input.value !== '') {
+            badge.classList.remove('bg-secondary', 'bg-primary');
+            badge.classList.add('bg-success');
+          } else {
+            badge.classList.remove('bg-primary', 'bg-success');
+            badge.classList.add('bg-secondary');
+          }
+        }
+      });
+      
+      // Mostrar el valor actual si existe
+      const valorActual = document.getElementById(`puntoInput${flechaActivaIdx}`).value;
+      if (valorActual !== '') {
+        valorFlechaMobile.textContent = valorActual;
+        
+        // Establecer el color según el valor
+        valorFlechaMobile.className = 'display-1 fw-bold';
+        if (valorActual <= 2) {
+          valorFlechaMobile.classList.add('text-dark');
+        } else if (valorActual <= 4) {
+          valorFlechaMobile.classList.add('text-dark');
+        } else if (valorActual <= 6) {
+          valorFlechaMobile.classList.add('text-info');
+        } else if (valorActual <= 8) {
+          valorFlechaMobile.classList.add('text-danger');
+        } else {
+          valorFlechaMobile.classList.add('text-warning');
+        }
+      } else {
+        valorFlechaMobile.textContent = '-';
+        valorFlechaMobile.className = 'display-1 fw-bold';
+      }
+    }
+    
+    // Función para actualizar el indicador de flecha
+    function actualizarIndicadorFlecha(idx, valor) {
+      const indicator = flechaIndicators[idx];
+      const badge = indicator.querySelector('.badge');
+      badge.classList.remove('bg-secondary', 'bg-primary');
+      badge.classList.add('bg-success');
+    }
+    
+    // Función para actualizar el resumen de flecha
+    function actualizarResumenFlecha(idx, valor) {
+      const resumen = resumenFlechas[idx];
+      resumen.textContent = valor;
+      
+      // Establecer el color según el valor
+      resumen.className = 'badge p-2';
+      if (valor <= 2) {
+        resumen.classList.add('bg-light', 'text-dark', 'border');
+      } else if (valor <= 4) {
+        resumen.classList.add('bg-dark', 'text-white');
+      } else if (valor <= 6) {
+        resumen.classList.add('bg-info', 'text-dark');
+      } else if (valor <= 8) {
+        resumen.classList.add('bg-danger', 'text-dark');
+      } else {
+        resumen.classList.add('bg-warning', 'text-dark');
+      }
+    }
+    
     // Calcular el total de la puntuación
     function calcularTotal() {
       let total = 0;
-      puntuacionInputs.forEach(input => {
+      puntuacionInputs.forEach((input, idx) => {
         if (input.value !== '') {
           total += parseInt(input.value);
+          actualizarResumenFlecha(idx, input.value);
         }
       });
       puntuacionTotalSpan.textContent = total;
     }
-
-    // Bootstrap form validation
-    const forms = document.querySelectorAll('.needs-validation');
-    Array.from(forms).forEach(form => {
-      form.addEventListener('submit', event => {
-        let formValid = true;
-        
-        // Comprobar que todos los campos de puntuación tienen un valor
-        puntuacionInputs.forEach((input, index) => {
-          if (input.value === '') {
-            input.classList.add('is-invalid');
-            formValid = false;
-            
-            // Resaltar visualmente el botón de flecha correspondiente
-            const flechaBtn = document.getElementById(`btnFlecha${index}`);
-            flechaBtn.classList.add('btn-outline-danger');
-            flechaBtn.classList.remove('btn-outline-primary');
-          }
-        });
-        
-        if (!formValid) {
-          event.preventDefault();
-          event.stopPropagation();
-          
-          // Mostrar un mensaje de error
-          const alertEl = document.createElement('div');
-          alertEl.className = 'alert alert-danger mt-3 mb-3';
-          alertEl.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i> Por favor, registra la puntuación para todas las flechas.';
-          
-          const alertContainer = form.querySelector('.alert');
-          if (!alertContainer) {
-            form.prepend(alertEl);
-            
-            // Remover después de 3 segundos
-            setTimeout(() => {
-              alertEl.remove();
-            }, 3000);
-          }
-        }
-        
-        form.classList.add('was-validated');
-      }, false);
-    });
   });
 </script>
 
@@ -849,14 +1057,14 @@
     z-index: 2;
   }
   
-  .punto-btn {
+  .punto-btn, .punto-btn-mobile {
     font-size: 1.4rem;
     font-weight: bold;
     min-height: 60px;
     transition: all 0.15s ease;
   }
   
-  .punto-btn:active {
+  .punto-btn:active, .punto-btn-mobile:active {
     transform: scale(0.95);
   }
   
@@ -864,8 +1072,136 @@
     animation: fadeIn 0.3s ease;
   }
   
+  .flecha-indicator {
+    cursor: pointer;
+  }
+  
+  .flecha-indicator .badge {
+    width: 30px;
+    height: 30px;
+    line-height: 22px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+  }
+  
+  .botonera-mobile {
+    animation: fadeIn 0.3s ease;
+  }
+  
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Estilos para la lista de participantes en móvil */
+  @media (max-width: 767.98px) {
+    /* Ajustes generales para móvil */
+    body {
+      overflow-x: hidden;
+    }
+    
+    .container {
+      padding-left: 0;
+      padding-right: 0;
+      max-width: 100%;
+    }
+    
+    .row {
+      margin-left: 0;
+      margin-right: 0;
+    }
+    
+    .col-12 {
+      padding-left: 0;
+      padding-right: 0;
+    }
+    
+    /* Estilo para el formulario de registro */
+    #registroTiradaForm {
+      display: none;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    #registroTiradaForm.show {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    #registroTiradaForm .card {
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 1rem;
+    }
+    
+    #registroTiradaForm .card-header {
+      border-radius: 0.5rem 0.5rem 0 0;
+      padding: 1rem;
+    }
+    
+    #registroTiradaForm .card-body {
+      padding: 1rem;
+    }
+    
+    /* Ajustes para el selector de flechas y puntuación */
+    .botonera-mobile {
+      background: #fff;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 1rem;
+    }
+    
+    /* Estilo para el botón de guardar */
+    #registroTiradaForm .btn-success.btn-lg {
+      position: sticky;
+      bottom: 1rem;
+      width: 100%;
+      height: 3.5rem;
+      border-radius: 0.5rem;
+      font-size: 1.2rem;
+      margin-top: 1rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    /* Ajustes para el resumen de puntuación */
+    #registroTiradaForm .card:not(:first-child) {
+      margin: 1rem 0;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Estilo para los botones de puntuación */
+    .punto-btn-mobile {
+      height: 3.5rem;
+      font-size: 1.3rem;
+      font-weight: bold;
+      border-radius: 0.5rem;
+    }
+    
+    /* Navegación de flechas */
+    #prevFlechaBtn, #nextFlechaBtn {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    #valorFlechaMobile {
+      font-size: 5rem;
+      line-height: 1;
+      margin: 1.5rem 0;
+    }
+    
+    .flecha-indicator .badge {
+      width: 2.5rem;
+      height: 2.5rem;
+      line-height: 1.8rem;
+      font-size: 1.1rem;
+    }
   }
 </style> 
