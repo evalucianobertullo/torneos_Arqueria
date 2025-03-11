@@ -16,38 +16,11 @@ const appConfigSchema = new mongoose.Schema({
       default: 40
     }
   },
-  // Colores principales
+  // Color principal
   colors: {
-    navbar: {
-      type: String,
-      default: '#0d6efd' // Color Bootstrap primary por defecto
-    },
     primary: {
       type: String,
       default: '#0d6efd'
-    },
-    secondary: {
-      type: String,
-      default: '#6c757d'
-    },
-    success: {
-      type: String,
-      default: '#198754'
-    },
-    warning: {
-      type: String,
-      default: '#ffc107'
-    }
-  },
-  // Otras configuraciones de estilo
-  styles: {
-    cardBorderRadius: {
-      type: String,
-      default: '10px'
-    },
-    buttonBorderRadius: {
-      type: String,
-      default: '5px'
     }
   },
   // Configuración de la aplicación

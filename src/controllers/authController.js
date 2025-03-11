@@ -110,4 +110,47 @@ exports.toggleUserStatus = async (req, res) => {
     req.flash('error_msg', 'Error al cambiar el estado del usuario');
     res.redirect('/users');
   }
+};
+
+// Cambiar contraseña de usuario (solo admin)
+exports.cambiarPasswordUsuario = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      req.flash('error_msg', 'No tienes permiso para realizar esta acción');
+      return res.redirect('/dashboard');
+    }
+
+    const { id } = req.params;
+    const { newPassword, confirmPassword } = req.body;
+
+    // Verificar que las contraseñas coincidan
+    if (newPassword !== confirmPassword) {
+      req.flash('error_msg', 'Las contraseñas no coinciden');
+      return res.redirect('/users');
+    }
+
+    const user = await User.findById(id);
+    
+    if (!user) {
+      req.flash('error_msg', 'Usuario no encontrado');
+      return res.redirect('/users');
+    }
+
+    // No permitir cambiar la contraseña del propio administrador
+    if (user._id.toString() === req.user._id.toString()) {
+      req.flash('error_msg', 'No puedes cambiar tu propia contraseña desde aquí');
+      return res.redirect('/users');
+    }
+
+    // Actualizar la contraseña
+    user.password = newPassword;
+    await user.save();
+
+    req.flash('success_msg', 'Contraseña actualizada correctamente');
+    res.redirect('/users');
+  } catch (error) {
+    console.error('Error al cambiar la contraseña:', error);
+    req.flash('error_msg', 'Error al cambiar la contraseña del usuario');
+    res.redirect('/users');
+  }
 }; 

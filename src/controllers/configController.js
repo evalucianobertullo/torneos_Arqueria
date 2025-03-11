@@ -26,32 +26,21 @@ exports.getConfig = async (req, res) => {
 // Actualizar la configuración
 exports.updateConfig = async (req, res) => {
   try {
-    const { colors, appName, styles } = req.body;
+    const { colors, appName } = req.body;
     let config = await AppConfig.findOne();
     
     if (!config) {
       config = new AppConfig();
     }
 
-    // Actualizar colores
-    if (colors) {
-      config.colors = {
-        ...config.colors,
-        ...colors
-      };
+    // Actualizar color principal
+    if (colors && colors.primary) {
+      config.colors.primary = colors.primary;
     }
 
     // Actualizar nombre de la aplicación
     if (appName) {
       config.appName = appName;
-    }
-
-    // Actualizar estilos
-    if (styles) {
-      config.styles = {
-        ...config.styles,
-        ...styles
-      };
     }
 
     // Manejar la subida del logo si existe
@@ -108,17 +97,7 @@ async function generateCustomCSS(config) {
     const cssContent = `
 /* Estilos personalizados generados automáticamente */
 :root {
-  --navbar-bg: ${config.colors.navbar};
   --primary-color: ${config.colors.primary};
-  --secondary-color: ${config.colors.secondary};
-  --success-color: ${config.colors.success};
-  --warning-color: ${config.colors.warning};
-  --card-border-radius: ${config.styles.cardBorderRadius};
-  --button-border-radius: ${config.styles.buttonBorderRadius};
-}
-
-.navbar {
-  background-color: var(--navbar-bg) !important;
 }
 
 .btn-primary {
@@ -136,14 +115,6 @@ async function generateCustomCSS(config) {
   color: white !important;
 }
 
-.card {
-  border-radius: var(--card-border-radius) !important;
-}
-
-.btn {
-  border-radius: var(--button-border-radius) !important;
-}
-
 /* Otros estilos personalizados */
 .bg-primary {
   background-color: var(--primary-color) !important;
@@ -156,7 +127,48 @@ async function generateCustomCSS(config) {
 .border-primary {
   border-color: var(--primary-color) !important;
 }
-`;
+
+/* Enlaces */
+a {
+  color: var(--primary-color);
+}
+
+a:hover {
+  color: var(--primary-color);
+  opacity: 0.8;
+}
+
+/* Elementos de formulario */
+.form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.25rem rgba(var(--primary-color), 0.25);
+}
+
+/* Dropdown */
+.dropdown-item:active {
+  background-color: var(--primary-color);
+}
+
+/* Paginación */
+.page-link {
+  color: var(--primary-color);
+}
+
+.page-item.active .page-link {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+/* Progress bars */
+.progress-bar {
+  background-color: var(--primary-color);
+}
+
+/* List groups */
+.list-group-item.active {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}`;
 
     const cssPath = path.join(__dirname, '../../public/css/custom.css');
     await fs.writeFile(cssPath, cssContent);

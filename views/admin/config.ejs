@@ -42,68 +42,20 @@
               </div>
             </div>
 
-            <!-- Colores -->
+            <!-- Color Principal -->
             <div class="mb-4">
-              <h5 class="border-bottom pb-2">Colores</h5>
-              <div class="row">
-                <div class="col-md-4 mb-3">
-                  <label for="navbarColor" class="form-label">Color de la Barra de Navegación</label>
-                  <div class="input-group">
-                    <input type="color" class="form-control form-control-color" 
-                           id="navbarColor" name="colors[navbar]" 
-                           value="<%= config.colors.navbar %>">
-                    <input type="text" class="form-control" 
-                           value="<%= config.colors.navbar %>" 
-                           data-color-input="navbarColor">
-                  </div>
+              <h5 class="border-bottom pb-2">Color Principal</h5>
+              <div class="mb-3">
+                <label for="primaryColor" class="form-label">Color Principal</label>
+                <div class="input-group">
+                  <input type="color" class="form-control form-control-color" 
+                         id="primaryColor" name="colors[primary]" 
+                         value="<%= config.colors.primary %>">
+                  <input type="text" class="form-control" 
+                         value="<%= config.colors.primary %>" 
+                         data-color-input="primaryColor">
                 </div>
-                <div class="col-md-4 mb-3">
-                  <label for="primaryColor" class="form-label">Color Principal</label>
-                  <div class="input-group">
-                    <input type="color" class="form-control form-control-color" 
-                           id="primaryColor" name="colors[primary]" 
-                           value="<%= config.colors.primary %>">
-                    <input type="text" class="form-control" 
-                           value="<%= config.colors.primary %>" 
-                           data-color-input="primaryColor">
-                  </div>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label for="secondaryColor" class="form-label">Color Secundario</label>
-                  <div class="input-group">
-                    <input type="color" class="form-control form-control-color" 
-                           id="secondaryColor" name="colors[secondary]" 
-                           value="<%= config.colors.secondary %>">
-                    <input type="text" class="form-control" 
-                           value="<%= config.colors.secondary %>" 
-                           data-color-input="secondaryColor">
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Estilos -->
-            <div class="mb-4">
-              <h5 class="border-bottom pb-2">Estilos</h5>
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="cardBorderRadius" class="form-label">Radio de Borde de Tarjetas</label>
-                  <div class="input-group">
-                    <input type="number" class="form-control" id="cardBorderRadius" 
-                           name="styles[cardBorderRadius]" 
-                           value="<%= parseInt(config.styles.cardBorderRadius) %>" min="0" max="50">
-                    <span class="input-group-text">px</span>
-                  </div>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label for="buttonBorderRadius" class="form-label">Radio de Borde de Botones</label>
-                  <div class="input-group">
-                    <input type="number" class="form-control" id="buttonBorderRadius" 
-                           name="styles[buttonBorderRadius]" 
-                           value="<%= parseInt(config.styles.buttonBorderRadius) %>" min="0" max="50">
-                    <span class="input-group-text">px</span>
-                  </div>
-                </div>
+                <small class="text-muted">Este color se aplicará a los botones, encabezados y elementos principales de la aplicación.</small>
               </div>
             </div>
 
@@ -138,52 +90,35 @@
   </div>
 </div>
 
-<!-- Script para la vista previa en tiempo real -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Manejar cambios en los inputs de color
-  document.querySelectorAll('input[type="color"]').forEach(colorInput => {
-    const textInput = document.querySelector(`[data-color-input="${colorInput.id}"]`);
-    
-    colorInput.addEventListener('input', function(e) {
-      textInput.value = e.target.value;
-      actualizarVistaPrevia();
-    });
-
-    textInput.addEventListener('input', function(e) {
-      colorInput.value = e.target.value;
-      actualizarVistaPrevia();
-    });
+  // Manejar cambios en el input de color
+  const colorInput = document.getElementById('primaryColor');
+  const textInput = document.querySelector('[data-color-input="primaryColor"]');
+  
+  colorInput.addEventListener('input', function(e) {
+    textInput.value = e.target.value;
+    actualizarVistaPrevia();
   });
 
-  // Manejar cambios en los inputs de radio de borde
-  document.querySelectorAll('input[type="number"]').forEach(input => {
-    input.addEventListener('input', actualizarVistaPrevia);
+  textInput.addEventListener('input', function(e) {
+    colorInput.value = e.target.value;
+    actualizarVistaPrevia();
   });
 
   function actualizarVistaPrevia() {
     const primaryColor = document.getElementById('primaryColor').value;
-    const cardRadius = document.getElementById('cardBorderRadius').value;
-    const buttonRadius = document.getElementById('buttonBorderRadius').value;
 
     document.querySelector('.preview-section .btn-primary').style.backgroundColor = primaryColor;
     document.querySelector('.preview-section .btn-primary').style.borderColor = primaryColor;
     document.querySelector('.preview-section .btn-outline-primary').style.borderColor = primaryColor;
     document.querySelector('.preview-section .btn-outline-primary').style.color = primaryColor;
-
-    document.querySelectorAll('.preview-section .btn').forEach(btn => {
-      btn.style.borderRadius = `${buttonRadius}px`;
-    });
-
-    document.querySelector('.preview-section .card').style.borderRadius = `${cardRadius}px`;
   }
 
   // Función para resetear la configuración
   window.resetearConfiguracion = function() {
     if (confirm('¿Estás seguro de que deseas resetear toda la configuración a sus valores por defecto?')) {
-      // Aquí puedes agregar la lógica para resetear
       location.href = '/admin/config/reset';
     }
   };
-});
-</script> 
+});</script> 

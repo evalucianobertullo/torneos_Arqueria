@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, logout, listUsers, toggleUserStatus } = require('../controllers/authController');
+const { register, login, logout, listUsers, toggleUserStatus, cambiarPasswordUsuario } = require('../controllers/authController');
 const { ensureAuthenticated, ensureNotAuthenticated, ensureAdmin } = require('../middleware/auth');
 
 // Ruta para registro de usuarios
@@ -27,5 +27,6 @@ router.get('/logout', ensureAuthenticated, logout);
 // Rutas para gestión de usuarios (solo admin)
 router.get('/users', ensureAuthenticated, ensureAdmin, listUsers);
 router.get('/users/toggle/:id', ensureAuthenticated, ensureAdmin, toggleUserStatus);
+router.post('/users/cambiar-password/:id', ensureAuthenticated, ensureAdmin, cambiarPasswordUsuario);
 
 module.exports = router; 

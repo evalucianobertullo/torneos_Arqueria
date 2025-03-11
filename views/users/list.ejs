@@ -45,11 +45,47 @@
                     </td>
                     <td>
                       <% if(!user.isAdmin || (user.isAdmin && user._id.toString() !== locals.user._id.toString())) { %>
-                        <a href="/users/toggle/<%= user._id %>" class="btn btn-sm <%= user.activo ? 'btn-danger' : 'btn-success' %>">
-                          <i class="fas <%= user.activo ? 'fa-user-slash' : 'fa-user-check' %>"></i>
-                          <%= user.activo ? 'Desactivar' : 'Activar' %>
-                        </a>
+                        <div class="btn-group">
+                          <a href="/users/toggle/<%= user._id %>" class="btn btn-sm <%= user.activo ? 'btn-danger' : 'btn-success' %>">
+                            <i class="fas <%= user.activo ? 'fa-user-slash' : 'fa-user-check' %>"></i>
+                            <%= user.activo ? 'Desactivar' : 'Activar' %>
+                          </a>
+                          <button type="button" class="btn btn-sm btn-warning" 
+                                  onclick="togglePasswordForm('<%= user._id %>')">
+                            <i class="fas fa-key"></i>
+                            Cambiar Contraseña
+                          </button>
+                        </div>
                       <% } %>
+                    </td>
+                  </tr>
+                  <tr id="passwordForm<%= user._id %>" style="display: none;">
+                    <td colspan="7">
+                      <form action="/users/cambiar-password/<%= user._id %>" method="POST" class="p-3 bg-light border rounded">
+                        <h5 class="mb-3">Cambiar Contraseña - <%= user.nombre %> <%= user.apellido %></h5>
+                        <div class="row">
+                          <div class="col-md-5">
+                            <div class="mb-3">
+                              <label for="newPassword<%= user._id %>" class="form-label">Nueva Contraseña</label>
+                              <input type="password" class="form-control" id="newPassword<%= user._id %>" 
+                                     name="newPassword" required>
+                            </div>
+                          </div>
+                          <div class="col-md-5">
+                            <div class="mb-3">
+                              <label for="confirmPassword<%= user._id %>" class="form-label">Confirmar Nueva Contraseña</label>
+                              <input type="password" class="form-control" id="confirmPassword<%= user._id %>" 
+                                     name="confirmPassword" required>
+                            </div>
+                          </div>
+                          <div class="col-md-2 d-flex align-items-end">
+                            <div class="mb-3">
+                              <button type="submit" class="btn btn-primary me-2">Guardar</button>
+                              <button type="button" class="btn btn-secondary" onclick="togglePasswordForm('<%= user._id %>')">Cancelar</button>
+                            </div>
+                          </div>
+                        </div>
+                      </form>
                     </td>
                   </tr>
                 <% }) %>
@@ -64,4 +100,20 @@
       </div>
     </div>
   </div>
-</div> 
+</div>
+
+<script>
+function togglePasswordForm(userId) {
+  const formRow = document.getElementById('passwordForm' + userId);
+  if (formRow.style.display === 'none') {
+    // Ocultar todos los demás formularios primero
+    document.querySelectorAll('[id^="passwordForm"]').forEach(form => {
+      form.style.display = 'none';
+    });
+    // Mostrar el formulario seleccionado
+    formRow.style.display = 'table-row';
+  } else {
+    formRow.style.display = 'none';
+  }
+}
+</script> 

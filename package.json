@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Aplicación web para la gestión de torneos de arquería",
   "main": "src/app.js",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
