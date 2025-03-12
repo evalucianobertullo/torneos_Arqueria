@@ -7,6 +7,10 @@ const appConfigSchema = new mongoose.Schema({
       type: String,
       default: ''
     },
+    filename: {
+      type: String,
+      default: ''
+    },
     altText: {
       type: String,
       default: 'Torneos de Arquería'

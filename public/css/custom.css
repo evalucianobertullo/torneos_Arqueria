@@ -1,9 +1,8 @@
 
 /* Estilos personalizados generados automáticamente */
 :root {
-  --primary-color: #900000;
-
-
+  --primary-color: #0d165e;
+  --primary-rgb: 13, 22, 94;
 }
 
 .btn-primary {
@@ -47,7 +46,7 @@ a:hover {
 /* Elementos de formulario */
 .form-control:focus {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 0.25rem rgba(var(--primary-color), 0.25);
+  box-shadow: 0 0 0 0.25rem rgba(var(--primary-rgb), 0.25);
 }
 
 /* Dropdown */
