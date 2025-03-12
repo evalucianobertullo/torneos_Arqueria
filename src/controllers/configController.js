@@ -1,6 +1,7 @@
 const AppConfig = require('../models/AppConfig');
 const path = require('path');
 const fs = require('fs').promises;
+const sharp = require('sharp');
 
 // Obtener la configuración actual
 exports.getConfig = async (req, res) => {
@@ -64,8 +65,19 @@ exports.updateConfig = async (req, res) => {
         }
       }
 
+      // Procesar y optimizar la imagen para favicon
+      const filename = `logo-${Date.now()}`;
+      const logoPath = `/uploads/logos/${filename}.png`;
+      
+      await sharp(req.file.path)
+        .resize(192, 192) // Tamaño recomendado para favicon
+        .png() // Convertir a PNG para mejor compatibilidad
+        .toFile(path.join(__dirname, '../../public', logoPath));
+
+      // Eliminar el archivo temporal
+      await fs.unlink(req.file.path);
+
       // Guardar nuevo logo
-      const logoPath = `/uploads/logos/${req.file.filename}`;
       config.logo = {
         url: logoPath,
         altText: appName || config.appName,

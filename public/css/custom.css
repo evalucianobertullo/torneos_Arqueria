@@ -1,17 +1,7 @@
 
 /* Estilos personalizados generados automáticamente */
 :root {
-  --navbar-bg: #0d6efd;
   --primary-color: #1130a2;
-  --secondary-color: #04f604;
-  --success-color: #198754;
-  --warning-color: #ffc107;
-  --card-border-radius: 10;
-  --button-border-radius: 5;
-}
-
-.navbar {
-  background-color: var(--navbar-bg) !important;
 }
 
 .btn-primary {
@@ -29,14 +19,6 @@
   color: white !important;
 }
 
-.card {
-  border-radius: var(--card-border-radius) !important;
-}
-
-.btn {
-  border-radius: var(--button-border-radius) !important;
-}
-
 /* Otros estilos personalizados */
 .bg-primary {
   background-color: var(--primary-color) !important;
@@ -48,4 +30,46 @@
 
 .border-primary {
   border-color: var(--primary-color) !important;
+}
+
+/* Enlaces */
+a {
+  color: var(--primary-color);
+}
+
+a:hover {
+  color: var(--primary-color);
+  opacity: 0.8;
+}
+
+/* Elementos de formulario */
+.form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.25rem rgba(var(--primary-color), 0.25);
+}
+
+/* Dropdown */
+.dropdown-item:active {
+  background-color: var(--primary-color);
+}
+
+/* Paginación */
+.page-link {
+  color: var(--primary-color);
+}
+
+.page-item.active .page-link {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+/* Progress bars */
+.progress-bar {
+  background-color: var(--primary-color);
+}
+
+/* List groups */
+.list-group-item.active {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
 }
