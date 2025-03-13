@@ -5,6 +5,7 @@ const path = require('path');
 const { ensureAuthenticated, ensureAdmin } = require('../middleware/auth');
 const configController = require('../controllers/configController');
 const estadisticasController = require('../controllers/estadisticasController');
+const amistososController = require('../controllers/amistososController');
 
 // Configurar multer para la subida de archivos
 const storage = multer.diskStorage({
@@ -53,5 +54,13 @@ router.get('/config/reset', ensureAuthenticated, ensureAdmin, async (req, res) =
 // Rutas de rankings y estadísticas
 router.get('/rankings', ensureAuthenticated, ensureAdmin, estadisticasController.getRankings);
 router.get('/estadisticas/:userId', ensureAuthenticated, ensureAdmin, estadisticasController.getEstadisticasArquero);
+
+// Rutas para amistosos (solo administradores)
+router.get('/amistosos', ensureAuthenticated, ensureAdmin, amistososController.getAmistosos);
+router.get('/amistosos/nuevo', ensureAuthenticated, ensureAdmin, amistososController.getNuevoAmistoso);
+router.post('/amistosos/crear', ensureAuthenticated, ensureAdmin, amistososController.crearAmistoso);
+router.post('/amistosos/:id/registrar-puntaje', ensureAuthenticated, ensureAdmin, amistososController.registrarPuntaje);
+router.post('/amistosos/:id/finalizar', ensureAuthenticated, ensureAdmin, amistososController.finalizarAmistoso);
+router.post('/amistosos/:id/eliminar', ensureAuthenticated, ensureAdmin, amistososController.eliminarAmistoso);
 
 module.exports = router; 

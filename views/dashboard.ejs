@@ -170,6 +170,25 @@
       </div>
     </div>
 
+    <% if(user.isAdmin) { %>
+    <!-- Amistosos -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow h-100">
+        <div class="card-header bg-secondary text-white">
+          <h5 class="mb-0"><i class="fas fa-handshake me-2"></i> Amistosos</h5>
+        </div>
+        <div class="card-body d-flex flex-column">
+          <p class="card-text flex-grow-1">Gestiona partidas amistosas rápidas entre arqueros sin necesidad de registro.</p>
+          <div class="mt-auto">
+            <a href="/admin/amistosos" class="btn btn-outline-secondary w-100">
+              <i class="fas fa-play me-2"></i> Gestionar Amistosos
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% } %>
+
     <!-- Logros y Nivel -->
     <div class="col-md-6 col-lg-4">
       <div class="card shadow h-100 border-warning">

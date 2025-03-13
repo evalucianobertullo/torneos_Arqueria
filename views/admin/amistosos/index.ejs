@@ -1,0 +1,532 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-12 mb-4">
+      <div class="d-flex justify-content-between align-items-center">
+        <h2><i class="fas fa-handshake me-2"></i> Amistosos</h2>
+        <a href="/admin/amistosos/nuevo" class="btn btn-primary">
+          <i class="fas fa-plus me-2"></i> Nuevo Amistoso
+        </a>
+      </div>
+      <hr>
+
+      <% if (mensajeExito && mensajeExito.length > 0) { %>
+        <div class="alert alert-success">
+          <i class="fas fa-check-circle me-2"></i> <%= mensajeExito %>
+        </div>
+      <% } %>
+
+      <% if (mensajeError && mensajeError.length > 0) { %>
+        <div class="alert alert-danger">
+          <i class="fas fa-exclamation-circle me-2"></i> <%= mensajeError %>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="col-12">
+      <% if (amistosos && amistosos.length > 0) { %>
+        <div class="row g-4">
+          <% amistosos.forEach(amistoso => { %>
+            <div class="col-12">
+              <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                      <i class="fas fa-users me-2"></i> 
+                      Amistoso #<%= amistoso.id.slice(-4) %>
+                    </h5>
+                    <div>
+                      <span class="badge bg-light text-dark me-2">
+                        <i class="fas fa-user-friends me-1"></i>
+                        <%= amistoso.participantes.length %> participantes
+                      </span>
+                      <small><%= new Date(amistoso.fecha).toLocaleString() %></small>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <% if (amistoso.estado === 'activo') { %>
+                    <!-- Progreso de la ronda actual -->
+                    <div class="mb-3">
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0">
+                          <i class="fas fa-flag me-1"></i> Ronda <%= amistoso.rondaActual %> de 3
+                        </h6>
+                        <small class="text-muted">
+                          <%= amistoso.participantes.filter(p => p.rondaCompletada).length %> 
+                          de <%= amistoso.participantes.length %> completados
+                        </small>
+                      </div>
+                      <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-success" 
+                             style="width: <%= (amistoso.participantes.filter(p => p.rondaCompletada).length / amistoso.participantes.length) * 100 %>%">
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Lista de participantes para registrar tiradas -->
+                    <div class="row g-3 mb-4">
+                      <% amistoso.participantes.forEach((participante, index) => { %>
+                        <div class="col-md-6 col-lg-4">
+                          <div class="card h-100 <%= participante.rondaCompletada ? 'border-success' : 'border' %>">
+                            <div class="card-body">
+                              <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                  <h6 class="mb-1"><%= participante.nombre %></h6>
+                                  <div class="d-flex align-items-center">
+                                    <span class="badge bg-primary me-2">Total: <%= participante.total %></span>
+                                    <% if (participante.rondaCompletada) { %>
+                                      <span class="badge bg-success">
+                                        <i class="fas fa-check me-1"></i> Ronda completada
+                                      </span>
+                                    <% } else { %>
+                                      <button class="btn btn-primary btn-sm registrar-tirada-btn"
+                                              data-amistoso-id="<%= amistoso.id %>"
+                                              data-participante-index="<%= index %>"
+                                              data-participante-nombre="<%= participante.nombre %>">
+                                        <i class="fas fa-edit me-1"></i> Registrar Tiradas
+                                      </button>
+                                    <% } %>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      <% }); %>
+                    </div>
+                  <% } %>
+
+                  <!-- Tabla de puntajes -->
+                  <div class="table-responsive mb-3">
+                    <table class="table table-sm table-hover">
+                      <thead class="table-light">
+                        <tr>
+                          <th style="width: 30%">Participante</th>
+                          <% for(let r = 1; r <= 3; r++) { %>
+                            <th colspan="2" class="text-center">Ronda <%= r %></th>
+                          <% } %>
+                          <th class="text-end" style="width: 15%">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% amistoso.participantes
+                             .sort((a, b) => b.total - a.total) // Ordenar por total
+                             .forEach((participante, posicion) => { %>
+                          <tr class="<%= posicion === 0 && amistoso.estado === 'activo' ? 'table-warning' : '' %>">
+                            <td>
+                              <div class="d-flex align-items-center">
+                                <% if (posicion === 0) { %>
+                                  <i class="fas fa-crown text-warning me-2"></i>
+                                <% } %>
+                                <%= participante.nombre %>
+                              </div>
+                            </td>
+                            <% participante.puntajes.forEach(puntaje => { %>
+                              <td class="text-center" style="width: 50px;">
+                                <span class="badge <%= puntaje !== null ? 
+                                  (puntaje >= 8 ? 'bg-warning text-dark' : 
+                                   puntaje >= 5 ? 'bg-info text-dark' : 
+                                   'bg-secondary') : 'bg-light text-dark border' %>">
+                                  <%= puntaje !== null ? puntaje : '-' %>
+                                </span>
+                              </td>
+                            <% }) %>
+                            <td class="text-end fw-bold"><%= participante.total %></td>
+                          </tr>
+                        <% }) %>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <% if (amistoso.estado === 'activo') { %>
+                        <span class="badge bg-success">
+                          <i class="fas fa-play me-1"></i> En Curso
+                        </span>
+                      <% } else { %>
+                        <span class="badge bg-secondary">
+                          <i class="fas fa-flag-checkered me-1"></i> Finalizado
+                        </span>
+                      <% } %>
+                    </div>
+                    
+                    <% if (amistoso.estado === 'activo') { %>
+                      <div>
+                        <button class="btn btn-danger btn-sm eliminar-btn me-2"
+                                data-amistoso-id="<%= amistoso.id %>">
+                          <i class="fas fa-trash me-1"></i> Terminar y Eliminar
+                        </button>
+                        <button class="btn btn-outline-success btn-sm finalizar-btn"
+                                data-amistoso-id="<%= amistoso.id %>">
+                          <i class="fas fa-flag-checkered me-1"></i> Finalizar con Estadísticas
+                        </button>
+                      </div>
+                    <% } %>
+                  </div>
+
+                  <% if (amistoso.estado === 'finalizado' && amistoso.ganador) { %>
+                    <div class="card mt-3 border-success">
+                      <div class="card-header bg-success text-white">
+                        <i class="fas fa-trophy me-2"></i> Resultados Finales
+                      </div>
+                      <div class="card-body">
+                        <div class="row">
+                          <!-- Ganador y Podio -->
+                          <div class="col-md-4">
+                            <h5 class="text-success mb-3">Podio</h5>
+                            <% const podio = [...amistoso.participantes].sort((a, b) => b.total - a.total).slice(0, 3); %>
+                            <% podio.forEach((participante, index) => { %>
+                              <div class="d-flex align-items-center mb-2">
+                                <% const medallas = ['🥇', '🥈', '🥉']; %>
+                                <span class="h4 mb-0 me-2"><%= medallas[index] %></span>
+                                <div>
+                                  <strong><%= participante.nombre %></strong><br>
+                                  <small class="text-muted"><%= participante.total %> puntos</small>
+                                </div>
+                              </div>
+                            <% }); %>
+                          </div>
+
+                          <!-- Estadísticas Generales -->
+                          <div class="col-md-4">
+                            <h5 class="text-primary mb-3">Estadísticas Generales</h5>
+                            <% 
+                              const totalParticipantes = amistoso.participantes.length;
+                              const promedioTotal = (amistoso.participantes.reduce((sum, p) => sum + p.total, 0) / totalParticipantes).toFixed(1);
+                              const mejorFlecha = Math.max(...amistoso.participantes.flatMap(p => p.puntajes));
+                              const flechasPerfectas = amistoso.participantes.flatMap(p => p.puntajes).filter(p => p === 10).length;
+                            %>
+                            <ul class="list-unstyled">
+                              <li class="mb-2">
+                                <i class="fas fa-calculator me-2 text-primary"></i>
+                                Promedio general: <strong><%= promedioTotal %></strong>
+                              </li>
+                              <li class="mb-2">
+                                <i class="fas fa-bullseye me-2 text-danger"></i>
+                                Mejor flecha: <strong><%= mejorFlecha %></strong>
+                              </li>
+                              <li class="mb-2">
+                                <i class="fas fa-star me-2 text-warning"></i>
+                                Flechas perfectas: <strong><%= flechasPerfectas %></strong>
+                              </li>
+                            </ul>
+                          </div>
+
+                          <!-- Mejores Rondas -->
+                          <div class="col-md-4">
+                            <h5 class="text-warning mb-3">Mejores Rondas</h5>
+                            <% 
+                              const rondasPorParticipante = amistoso.participantes.map(p => {
+                                const rondas = [
+                                  {puntos: p.puntajes[0] + p.puntajes[1], ronda: 1},
+                                  {puntos: p.puntajes[2] + p.puntajes[3], ronda: 2},
+                                  {puntos: p.puntajes[4] + p.puntajes[5], ronda: 3}
+                                ];
+                                const mejorRonda = rondas.reduce((max, ronda) => ronda.puntos > max.puntos ? ronda : max);
+                                return {
+                                  nombre: p.nombre,
+                                  ...mejorRonda
+                                };
+                              }).sort((a, b) => b.puntos - a.puntos);
+                            %>
+                            <% rondasPorParticipante.slice(0, 3).forEach((mejor, index) => { %>
+                              <div class="mb-2">
+                                <div class="d-flex justify-content-between">
+                                  <span><%= mejor.nombre %></span>
+                                  <span class="badge bg-warning text-dark">
+                                    <%= mejor.puntos %> pts (Ronda <%= mejor.ronda %>)
+                                  </span>
+                                </div>
+                              </div>
+                            <% }); %>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+      <% } else { %>
+        <div class="text-center py-5">
+          <i class="fas fa-handshake fa-3x text-muted mb-3"></i>
+          <h4>No hay amistosos activos</h4>
+          <p class="text-muted">Crea un nuevo amistoso para comenzar</p>
+          <a href="/admin/amistosos/nuevo" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i> Crear Amistoso
+          </a>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para registrar tiradas -->
+<div class="modal fade" id="registroTiradasModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-bullseye me-2"></i>
+          Registrar Tiradas - <span id="nombreParticipanteModal"></span>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Selector de flecha con carrusel -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <button type="button" class="btn btn-sm btn-secondary" id="prevFlechaBtn">
+            <i class="fas fa-arrow-left"></i>
+          </button>
+          <div class="text-center">
+            <h5 class="mb-0">Flecha <span id="flechaActual">1</span> de 2</h5>
+            <div class="mt-2">
+              <span id="valorFlecha" class="display-1 fw-bold">-</span>
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm btn-secondary" id="nextFlechaBtn">
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <!-- Indicadores de flechas -->
+        <div class="d-flex justify-content-center mb-3">
+          <div class="flecha-indicator mx-1 active" data-flecha="0">
+            <span class="badge rounded-pill bg-primary">1</span>
+          </div>
+          <div class="flecha-indicator mx-1" data-flecha="1">
+            <span class="badge rounded-pill bg-secondary">2</span>
+          </div>
+        </div>
+
+        <!-- Botonera de puntuación -->
+        <div class="botonera-puntos">
+          <!-- 9-10: fondo amarillo con letras en negro -->
+          <div class="d-flex mb-2 justify-content-between">
+            <% [10, 9].forEach(punto => { %>
+              <button type="button" 
+                      class="btn punto-btn btn-warning text-dark" 
+                      style="width: 48%"
+                      data-punto="<%= punto %>">
+                <%= punto %>
+              </button>
+            <% }); %>
+          </div>
+          
+          <!-- 7-8: fondo rojo -->
+          <div class="d-flex mb-2 justify-content-between">
+            <% [8, 7].forEach(punto => { %>
+              <button type="button" 
+                      class="btn punto-btn btn-danger" 
+                      style="width: 48%"
+                      data-punto="<%= punto %>">
+                <%= punto %>
+              </button>
+            <% }); %>
+          </div>
+          
+          <!-- 5-6: fondo azul -->
+          <div class="d-flex mb-2 justify-content-between">
+            <% [6, 5].forEach(punto => { %>
+              <button type="button" 
+                      class="btn punto-btn btn-info text-dark" 
+                      style="width: 48%"
+                      data-punto="<%= punto %>">
+                <%= punto %>
+              </button>
+            <% }); %>
+          </div>
+          
+          <!-- 3-4: fondo negro -->
+          <div class="d-flex mb-2 justify-content-between">
+            <% [4, 3].forEach(punto => { %>
+              <button type="button" 
+                      class="btn punto-btn btn-dark" 
+                      style="width: 48%"
+                      data-punto="<%= punto %>">
+                <%= punto %>
+              </button>
+            <% }); %>
+          </div>
+          
+          <!-- 1-2: fondo blanco con borde -->
+          <div class="d-flex mb-2 justify-content-between">
+            <% [2, 1].forEach(punto => { %>
+              <button type="button" 
+                      class="btn punto-btn btn-light border" 
+                      style="width: 48%"
+                      data-punto="<%= punto %>">
+                <%= punto %>
+              </button>
+            <% }); %>
+          </div>
+          
+          <!-- 0: botón gris -->
+          <div class="d-flex justify-content-center">
+            <button type="button" 
+                    class="btn punto-btn btn-secondary" 
+                    style="width: 48%"
+                    data-punto="0">
+              0
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const registroTiradasModal = new bootstrap.Modal(document.getElementById('registroTiradasModal'));
+  const nombreParticipanteModal = document.getElementById('nombreParticipanteModal');
+  const valorFlecha = document.getElementById('valorFlecha');
+  const flechaActual = document.getElementById('flechaActual');
+  let amistosoIdActual, participanteIndexActual, flechaIndexActual = 0;
+  const puntajes = [null, null]; // Array para almacenar los puntajes temporalmente
+
+  // Manejar botones de registrar tirada
+  document.querySelectorAll('.registrar-tirada-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      amistosoIdActual = this.dataset.amistosoId;
+      participanteIndexActual = this.dataset.participanteIndex;
+      nombreParticipanteModal.textContent = this.dataset.participanteNombre;
+      flechaIndexActual = 0;
+      puntajes.fill(null);
+      actualizarIndicadoresFlecha();
+      registroTiradasModal.show();
+    });
+  });
+
+  // Navegación entre flechas
+  document.getElementById('prevFlechaBtn').addEventListener('click', () => {
+    if (flechaIndexActual > 0) {
+      flechaIndexActual--;
+      actualizarIndicadoresFlecha();
+    }
+  });
+
+  document.getElementById('nextFlechaBtn').addEventListener('click', () => {
+    if (flechaIndexActual < 1) {
+      flechaIndexActual++;
+      actualizarIndicadoresFlecha();
+    }
+  });
+
+  // Actualizar indicadores de flecha
+  function actualizarIndicadoresFlecha() {
+    flechaActual.textContent = flechaIndexActual + 1;
+    valorFlecha.textContent = puntajes[flechaIndexActual] !== null ? puntajes[flechaIndexActual] : '-';
+    document.querySelectorAll('.flecha-indicator').forEach((indicator, index) => {
+      const badge = indicator.querySelector('.badge');
+      if (index === flechaIndexActual) {
+        badge.classList.remove('bg-secondary');
+        badge.classList.add('bg-primary');
+      } else {
+        badge.classList.remove('bg-primary');
+        badge.classList.add(puntajes[index] !== null ? 'bg-success' : 'bg-secondary');
+      }
+    });
+  }
+
+  // Manejar botones de puntuación
+  document.querySelectorAll('.punto-btn').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const puntaje = parseInt(this.dataset.punto);
+      puntajes[flechaIndexActual] = puntaje;
+      
+      // Actualizar el valor mostrado
+      valorFlecha.textContent = puntaje;
+      actualizarIndicadoresFlecha();
+
+      // Si es la última flecha o todas tienen puntaje, enviar al servidor
+      if (flechaIndexActual === 1 || (flechaIndexActual === 0 && puntajes[1] !== null)) {
+        try {
+          const response = await fetch(`/admin/amistosos/${amistosoIdActual}/registrar-puntaje`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              participanteIndex: participanteIndexActual,
+              puntajes: puntajes
+            })
+          });
+
+          const data = await response.json();
+          if (data.success) {
+            // Cerrar el modal y recargar después de un breve delay
+            setTimeout(() => {
+              registroTiradasModal.hide();
+              location.reload();
+            }, 500);
+          } else {
+            throw new Error(data.error);
+          }
+        } catch (error) {
+          alert('Error al registrar los puntajes: ' + error.message);
+        }
+      } else {
+        // Avanzar a la siguiente flecha
+        flechaIndexActual++;
+        actualizarIndicadoresFlecha();
+      }
+    });
+  });
+
+  // Manejar botones de finalizar
+  document.querySelectorAll('.finalizar-btn').forEach(button => {
+    button.addEventListener('click', async function() {
+      if (!confirm('¿Estás seguro de que deseas finalizar este amistoso?')) {
+        return;
+      }
+
+      const amistosoId = this.dataset.amistosoId;
+
+      try {
+        const response = await fetch(`/admin/amistosos/${amistosoId}/finalizar`, {
+          method: 'POST'
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          location.reload();
+        } else {
+          throw new Error(data.error);
+        }
+      } catch (error) {
+        alert('Error al finalizar el amistoso: ' + error.message);
+      }
+    });
+  });
+
+  // Manejar botones de eliminar directamente
+  document.querySelectorAll('.eliminar-btn').forEach(button => {
+    button.addEventListener('click', async function() {
+      if (!confirm('¿Estás seguro de que deseas terminar y eliminar este amistoso?\nEsta acción no mostrará estadísticas y es irreversible.')) {
+        return;
+      }
+
+      const amistosoId = this.dataset.amistosoId;
+
+      try {
+        const response = await fetch(`/admin/amistosos/${amistosoId}/eliminar`, {
+          method: 'POST'
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          location.reload();
+        } else {
+          throw new Error(data.error);
+        }
+      } catch (error) {
+        alert('Error al eliminar el amistoso: ' + error.message);
+      }
+    });
+  });
+});
+</script> 

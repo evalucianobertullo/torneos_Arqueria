@@ -1,0 +1,148 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-12 mb-4">
+      <div class="d-flex align-items-center">
+        <a href="/admin/amistosos" class="btn btn-outline-primary me-3">
+          <i class="fas fa-arrow-left"></i>
+        </a>
+        <h2 class="mb-0">Nuevo Amistoso</h2>
+      </div>
+      <hr>
+    </div>
+
+    <div class="col-md-8 mx-auto">
+      <div class="card shadow">
+        <div class="card-body">
+          <form id="nuevoAmistosoForm" method="POST" action="/admin/amistosos/crear">
+            <div class="mb-4">
+              <h5><i class="fas fa-users me-2"></i>Participantes</h5>
+              <p class="text-muted small">Ingresa los nombres de los participantes (mínimo 2)</p>
+              
+              <div id="participantesContainer">
+                <!-- Primer participante -->
+                <div class="mb-3 participante-input">
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="fas fa-user"></i>
+                    </span>
+                    <input type="text" 
+                           class="form-control" 
+                           name="participantes[]" 
+                           placeholder="Nombre del participante 1"
+                           required>
+                  </div>
+                </div>
+                <!-- Segundo participante -->
+                <div class="mb-3 participante-input">
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="fas fa-user"></i>
+                    </span>
+                    <input type="text" 
+                           class="form-control" 
+                           name="participantes[]" 
+                           placeholder="Nombre del participante 2"
+                           required>
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" id="agregarParticipante" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-plus me-2"></i>Agregar Otro Participante
+              </button>
+            </div>
+
+            <div class="mb-4">
+              <h5><i class="fas fa-info-circle me-2"></i>Información del Amistoso</h5>
+              <p class="text-muted small mb-3">El amistoso consistirá en 3 rondas con 2 flechas por ronda</p>
+              
+              <div class="alert alert-info">
+                <i class="fas fa-bullseye me-2"></i>
+                <strong>Formato:</strong>
+                <ul class="mb-0 mt-2">
+                  <li>3 rondas</li>
+                  <li>2 flechas por ronda</li>
+                  <li>Puntaje por flecha: 0-10 puntos</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-play me-2"></i>Comenzar Amistoso
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const participantesContainer = document.getElementById('participantesContainer');
+  const agregarParticipanteBtn = document.getElementById('agregarParticipante');
+  const form = document.getElementById('nuevoAmistosoForm');
+
+  // Función para crear un nuevo input de participante
+  function crearParticipanteInput() {
+    const numParticipantes = participantesContainer.children.length + 1;
+    const div = document.createElement('div');
+    div.className = 'mb-3 participante-input';
+    div.innerHTML = `
+      <div class="input-group">
+        <span class="input-group-text">
+          <i class="fas fa-user"></i>
+        </span>
+        <input type="text" 
+               class="form-control" 
+               name="participantes[]" 
+               placeholder="Nombre del participante ${numParticipantes}"
+               required>
+        <button type="button" class="btn btn-outline-danger eliminar-participante">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    `;
+    return div;
+  }
+
+  // Agregar participante
+  agregarParticipanteBtn.addEventListener('click', function() {
+    participantesContainer.appendChild(crearParticipanteInput());
+  });
+
+  // Eliminar participante
+  participantesContainer.addEventListener('click', function(e) {
+    if (e.target.closest('.eliminar-participante')) {
+      const participanteInput = e.target.closest('.participante-input');
+      if (participantesContainer.children.length > 2) {
+        participanteInput.remove();
+      } else {
+        alert('Debe haber al menos dos participantes');
+      }
+    }
+  });
+
+  // Validar formulario
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const participantes = Array.from(form.querySelectorAll('input[name="participantes[]"]'))
+      .map(input => input.value.trim())
+      .filter(nombre => nombre.length > 0);
+
+    if (participantes.length < 2) {
+      alert('Debe haber al menos 2 participantes');
+      return;
+    }
+
+    if (new Set(participantes).size !== participantes.length) {
+      alert('Los nombres de los participantes deben ser únicos');
+      return;
+    }
+
+    this.submit();
+  });
+});</script> 
