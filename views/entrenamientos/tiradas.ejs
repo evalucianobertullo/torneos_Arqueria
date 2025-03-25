@@ -117,13 +117,19 @@
           </h3>
         </div>
         <div class="card-body">
-          <form action="/entrenamientos/<%= entrenamiento._id %>/tiradas" method="POST">
+          <!-- Formulario único para ambas vistas -->
+          <form action="/entrenamientos/<%= entrenamiento._id %>/tiradas" method="POST" id="formTirada">
             <input type="hidden" name="ronda" value="<%= rondaActual %>">
             
             <div class="alert alert-info mb-4">
               <i class="fas fa-info-circle me-2"></i> 
               Registra la puntuación de cada flecha (valores del 0 al 10).
             </div>
+            
+            <!-- Inputs ocultos comunes a ambas vistas -->
+            <% for(let i = 0; i < entrenamiento.flechasPorTirada; i++) { %>
+              <input type="hidden" name="puntos[]" id="puntos<%= i %>" value="">
+            <% } %>
             
             <!-- Vista móvil - Selector de flecha -->
             <div class="d-md-none">
@@ -155,70 +161,70 @@
               
               <!-- Botonera de puntuación móvil -->
               <div class="botonera-mobile">
-                <!-- 9-10: fondo amarillo con letras en negro -->
+                <!-- 9-10: fondo amarillo -->
                 <div class="d-flex mb-2 justify-content-between">
-                  <% for(let j = 10; j >= 9; j--) { %>
+                  <% [10, 9].forEach(valor => { %>
                     <button type="button" 
                         class="btn punto-btn-mobile btn-lg btn-warning text-dark" 
                         style="width: 48%"
-                        data-valor="<%= j %>">
-                      <%= j %>
+                        data-valor="<%= valor %>">
+                      <%= valor %>
                     </button>
-                  <% } %>
+                  <% }); %>
                 </div>
                 
-                <!-- 7-8: fondo rojo letras negro -->
+                <!-- 7-8: fondo rojo -->
                 <div class="d-flex mb-2 justify-content-between">
-                  <% for(let j = 8; j >= 7; j--) { %>
+                  <% [8, 7].forEach(valor => { %>
                     <button type="button" 
                         class="btn punto-btn-mobile btn-lg btn-danger text-dark" 
                         style="width: 48%"
-                        data-valor="<%= j %>">
-                      <%= j %>
+                        data-valor="<%= valor %>">
+                      <%= valor %>
                     </button>
-                  <% } %>
+                  <% }); %>
                 </div>
                 
-                <!-- 5-6: fondo celeste letras en negro -->
+                <!-- 5-6: fondo celeste -->
                 <div class="d-flex mb-2 justify-content-between">
-                  <% for(let j = 6; j >= 5; j--) { %>
+                  <% [6, 5].forEach(valor => { %>
                     <button type="button" 
                         class="btn punto-btn-mobile btn-lg btn-info text-dark" 
                         style="width: 48%"
-                        data-valor="<%= j %>">
-                      <%= j %>
+                        data-valor="<%= valor %>">
+                      <%= valor %>
                     </button>
-                  <% } %>
+                  <% }); %>
                 </div>
                 
-                <!-- 3-4: fondo negro con letras blancas -->
+                <!-- 3-4: fondo negro -->
                 <div class="d-flex mb-2 justify-content-between">
-                  <% for(let j = 4; j >= 3; j--) { %>
+                  <% [4, 3].forEach(valor => { %>
                     <button type="button" 
                         class="btn punto-btn-mobile btn-lg btn-dark text-white" 
                         style="width: 48%"
-                        data-valor="<%= j %>">
-                      <%= j %>
+                        data-valor="<%= valor %>">
+                      <%= valor %>
                     </button>
-                  <% } %>
+                  <% }); %>
                 </div>
                 
-                <!-- 0-2: fondo blanco con letra negra -->
+                <!-- 0-2: fondo blanco -->
                 <div class="d-flex justify-content-between">
-                  <% for(let j = 2; j >= 0; j--) { %>
+                  <% [2, 1, 0].forEach(valor => { %>
                     <button type="button" 
                         class="btn punto-btn-mobile btn-lg btn-outline-dark" 
                         style="width: 31%"
-                        data-valor="<%= j %>">
-                      <%= j %>
+                        data-valor="<%= valor %>">
+                      <%= valor %>
                     </button>
-                  <% } %>
+                  <% }); %>
                 </div>
               </div>
 
               <!-- Botón de guardar y resumen -->
               <div class="mt-4">
-                <button type="submit" class="btn btn-success btn-lg w-100 py-4 mb-3 fs-5 fw-bold" id="btnGuardar" disabled>
+                <button type="submit" class="btn btn-success btn-lg w-100 py-4 mb-3 fs-5 fw-bold" id="btnGuardarMobile" disabled>
                   <i class="fas fa-save me-2"></i> Guardar Tirada
                 </button>
 
@@ -241,82 +247,52 @@
                   </div>
                 </div>
               </div>
-              
             </div>
             
             <!-- Vista escritorio - Todas las flechas -->
             <div class="row mb-4 d-none d-md-flex">
-              <% for(let i = 1; i <= entrenamiento.flechasPorTirada; i++) { %>
-                <div class="col-md-4 col-lg-3 mb-3">
-                  <div class="card border-primary h-100">
-                    <div class="card-header bg-primary text-white py-2">
-                      <h5 class="mb-0 small">Flecha <%= i %></h5>
-                    </div>
-                    <div class="card-body p-2">
-                      <input type="hidden" name="puntos" id="puntos<%= i %>" value="" required>
-                      
-                      <div class="d-flex justify-content-center mb-2">
-                        <span class="fs-2 fw-bold" id="puntosDisplay<%= i %>">-</span>
+              <div class="row">
+                <% for(let i = 0; i < entrenamiento.flechasPorTirada; i++) { %>
+                  <div class="col-md-4 col-lg-3 mb-3">
+                    <div class="card border-primary h-100">
+                      <div class="card-header bg-primary text-white py-2">
+                        <h5 class="mb-0 small">Flecha <%= i + 1 %></h5>
                       </div>
-                      
-                      <div class="btn-group d-flex flex-wrap" role="group">
-                        <% for(let j = 10; j >= 9; j--) { %>
-                          <button type="button" class="btn btn-sm btn-warning punto-btn" 
-                                  data-valor="<%= j %>" data-target="puntos<%= i %>">
-                            <%= j %>
-                          </button>
-                        <% } %>
+                      <div class="card-body p-2">
+                        <div class="d-flex justify-content-center mb-2">
+                          <span class="fs-2 fw-bold" id="puntosDisplayDesktop<%= i %>">-</span>
+                        </div>
                         
-                        <% for(let j = 8; j >= 7; j--) { %>
-                          <button type="button" class="btn btn-sm btn-danger punto-btn" 
-                                  data-valor="<%= j %>" data-target="puntos<%= i %>">
-                            <%= j %>
-                          </button>
-                        <% } %>
-                        
-                        <% for(let j = 6; j >= 5; j--) { %>
-                          <button type="button" class="btn btn-sm btn-info punto-btn" 
-                                  data-valor="<%= j %>" data-target="puntos<%= i %>">
-                            <%= j %>
-                          </button>
-                        <% } %>
-                        
-                        <% for(let j = 4; j >= 3; j--) { %>
-                          <button type="button" class="btn btn-sm btn-dark punto-btn" 
-                                  data-valor="<%= j %>" data-target="puntos<%= i %>">
-                            <%= j %>
-                          </button>
-                        <% } %>
-                        
-                        <% for(let j = 2; j >= 0; j--) { %>
-                          <button type="button" class="btn btn-sm btn-light punto-btn border" 
-                                  data-valor="<%= j %>" data-target="puntos<%= i %>">
-                            <%= j %>
-                          </button>
-                        <% } %>
+                        <div class="btn-group-vertical w-100" role="group">
+                          <% [[10,9,'warning'], [8,7,'danger'], [6,5,'info'], [4,3,'dark'], [2,1,0,'light']].forEach(group => { %>
+                            <div class="btn-group">
+                              <% group.forEach(valor => { 
+                                if (typeof valor === 'number') { %>
+                                  <button type="button" 
+                                          class="btn btn-sm btn-<%= group[group.length-1] %> punto-btn-desktop <%= group[group.length-1] === 'light' ? 'border' : '' %>" 
+                                          data-valor="<%= valor %>" 
+                                          data-index="<%= i %>">
+                                    <%= valor %>
+                                  </button>
+                              <% }
+                              }); %>
+                            </div>
+                          <% }); %>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              <% } %>
-            </div>
+                <% } %>
+              </div>
 
-            <div class="alert alert-success mb-4" id="resumenTirada" style="display: none;">
-              <h5><i class="fas fa-check-circle me-2"></i> Resumen de la tirada</h5>
-              <div class="row" id="resumenPuntos"></div>
-              <p class="mt-2 mb-0">
-                <strong>Total:</strong> <span id="totalPuntos">0</span> puntos | 
-                <strong>Promedio:</strong> <span id="promedioPuntos">0</span> puntos por flecha
-              </p>
-            </div>
-            
-            <div class="d-grid gap-2">
-              <button type="button" class="btn btn-secondary" id="btnReiniciar">
-                <i class="fas fa-redo me-2"></i> Reiniciar Tirada
-              </button>
-              <a href="/entrenamientos/<%= entrenamiento._id %>" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i> Volver al Entrenamiento
-              </a>
+              <div class="d-grid gap-2 mt-4">
+                <button type="submit" class="btn btn-success btn-lg" id="btnGuardarDesktop" disabled>
+                  <i class="fas fa-save me-2"></i> Guardar Tirada
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnReiniciarDesktop">
+                  <i class="fas fa-redo me-2"></i> Reiniciar Tirada
+                </button>
+              </div>
             </div>
           </form>
         </div>
@@ -672,41 +648,30 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- Script para botonera de puntos -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Referencias a elementos DOM
-  const puntoBtns = document.querySelectorAll('.punto-btn');
-  const puntoBtnsMobile = document.querySelectorAll('.punto-btn-mobile');
-  const btnsFlechas = document.querySelectorAll('.btn-flecha');
-  const btnGuardar = document.getElementById('btnGuardar');
-  const btnReiniciar = document.getElementById('btnReiniciar');
+  const formTirada = document.getElementById('formTirada');
+  const btnGuardarMobile = document.getElementById('btnGuardarMobile');
+  const btnGuardarDesktop = document.getElementById('btnGuardarDesktop');
   const prevFlecha = document.getElementById('prevFlecha');
   const nextFlecha = document.getElementById('nextFlecha');
   const puntoDisplayMobile = document.getElementById('puntoDisplayMobile');
   const flechaActivaMobile = document.getElementById('flechaActivaMobile');
   const totalPuntosMobile = document.getElementById('totalPuntosMobile');
+  const btnsFlechas = document.querySelectorAll('.btn-flecha');
   const resumenFlechas = [];
   
-  const flechasPorTirada = <%= entrenamiento.flechasPorTirada %>;
-  const resumenTirada = document.getElementById('resumenTirada');
-  const resumenPuntos = document.getElementById('resumenPuntos');
-  const totalPuntos = document.getElementById('totalPuntos');
-  const promedioPuntos = document.getElementById('promedioPuntos');
+  let flechaActivaIdx = 0;
+  const valoresFlechas = new Array(<%= entrenamiento.flechasPorTirada %>).fill(null);
   
-  // Inicializar array de resumen de flechas
-  for(let i = 0; i < flechasPorTirada; i++) {
+  // Inicializar resumen
+  for(let i = 0; i < <%= entrenamiento.flechasPorTirada %>; i++) {
     resumenFlechas.push(document.getElementById(`resumenFlecha${i}`));
   }
   
-  // Variable para seguimiento de la flecha actual en móvil
-  let flechaActivaIdx = 0;
-  const valoresFlechas = new Array(flechasPorTirada).fill(null);
-  
-  // Función para actualizar el resumen de flechas
-  function actualizarResumenFlecha(idx, valor) {
-    if (resumenFlechas[idx]) {
-      const badge = resumenFlechas[idx];
+  function actualizarResumen(idx, valor) {
+    // Actualizar badge de resumen
+    const badge = resumenFlechas[idx];
+    if (badge) {
       badge.textContent = valor !== null ? valor : '-';
-      
-      // Actualizar clase según el valor
       badge.className = 'badge';
       if (valor !== null) {
         if (valor >= 9) badge.classList.add('bg-warning', 'text-dark');
@@ -718,108 +683,195 @@ document.addEventListener('DOMContentLoaded', function() {
         badge.classList.add('bg-light', 'text-dark', 'border');
       }
     }
+    
+    // Actualizar input hidden común
+    const input = document.getElementById(`puntos${idx}`);
+    if (input) {
+      input.value = valor !== null ? valor.toString() : '';
+    }
   }
   
-  // Función para calcular y mostrar el total
   function actualizarTotal() {
     const total = valoresFlechas.reduce((sum, val) => sum + (val || 0), 0);
-    if (totalPuntosMobile) totalPuntosMobile.textContent = total;
+    if (totalPuntosMobile) {
+      totalPuntosMobile.textContent = total;
+    }
   }
   
-  // Función para actualizar la navegación de flechas en móvil
-  function actualizarNavegacionFlechas() {
-    // Actualizar texto de flecha actual
-    flechaActivaMobile.textContent = flechaActivaIdx + 1;
+  function actualizarNavegacion() {
+    // Actualizar número de flecha activa
+    if (flechaActivaMobile) {
+      flechaActivaMobile.textContent = flechaActivaIdx + 1;
+    }
     
-    // Actualizar estado de botones de navegación
-    prevFlecha.disabled = flechaActivaIdx === 0;
-    nextFlecha.disabled = flechaActivaIdx === flechasPorTirada - 1;
+    // Actualizar botones de navegación
+    if (prevFlecha) prevFlecha.disabled = flechaActivaIdx === 0;
+    if (nextFlecha) nextFlecha.disabled = flechaActivaIdx === <%= entrenamiento.flechasPorTirada - 1 %>;
     
     // Actualizar indicadores de flecha
     btnsFlechas.forEach((btn, idx) => {
       const badge = btn.querySelector('.badge');
-      badge.classList.remove('current', 'completed');
-      
-      if (idx === flechaActivaIdx) {
-        badge.classList.remove('bg-secondary', 'bg-success');
-        badge.classList.add('bg-primary', 'current');
-      } else {
-        if (valoresFlechas[idx] !== null) {
-          badge.classList.remove('bg-secondary', 'bg-primary');
-          badge.classList.add('bg-success', 'completed');
+      if (badge) {
+        badge.className = 'badge rounded-pill';
+        if (idx === flechaActivaIdx) {
+          badge.classList.add('bg-primary');
+        } else if (valoresFlechas[idx] !== null) {
+          badge.classList.add('bg-success');
         } else {
-          badge.classList.remove('bg-primary', 'bg-success', 'current', 'completed');
           badge.classList.add('bg-secondary');
         }
       }
     });
     
-    // Mostrar el valor actual si existe
-    const valorActual = valoresFlechas[flechaActivaIdx];
-    puntoDisplayMobile.textContent = valorActual !== null ? valorActual : '-';
-    puntoDisplayMobile.className = 'display-1 fw-bold ' + (valorActual !== null ? getPuntoClass(valorActual) : '');
+    // Actualizar display de valor
+    if (puntoDisplayMobile) {
+      const valorActual = valoresFlechas[flechaActivaIdx];
+      puntoDisplayMobile.textContent = valorActual !== null ? valorActual : '-';
+      puntoDisplayMobile.className = 'display-1 fw-bold';
+      if (valorActual !== null) {
+        if (valorActual >= 9) puntoDisplayMobile.classList.add('text-warning');
+        else if (valorActual >= 7) puntoDisplayMobile.classList.add('text-danger');
+        else if (valorActual >= 5) puntoDisplayMobile.classList.add('text-info');
+        else if (valorActual >= 3) puntoDisplayMobile.classList.add('text-dark');
+        else puntoDisplayMobile.classList.add('text-secondary');
+      }
+    }
   }
   
-  // Manejar clicks en botones de flecha
+  function actualizarBotonesGuardar() {
+    const todosCompletados = valoresFlechas.every(v => v !== null);
+    if (btnGuardarMobile) btnGuardarMobile.disabled = !todosCompletados;
+    if (btnGuardarDesktop) btnGuardarDesktop.disabled = !todosCompletados;
+  }
+  
+  // Manejar clicks en botones de puntuación móvil
+  document.querySelectorAll('.punto-btn-mobile').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const valor = parseInt(this.dataset.valor);
+      
+      // Actualizar valor
+      valoresFlechas[flechaActivaIdx] = valor;
+      
+      // Actualizar visualización
+      actualizarResumen(flechaActivaIdx, valor);
+      actualizarTotal();
+      actualizarNavegacion();
+      actualizarBotonesGuardar();
+      
+      // Avanzar a la siguiente flecha
+      if (flechaActivaIdx < <%= entrenamiento.flechasPorTirada - 1 %>) {
+        setTimeout(() => {
+          flechaActivaIdx++;
+          actualizarNavegacion();
+        }, 300);
+      }
+    });
+  });
+  
+  // Manejar clicks en botones de puntuación desktop
+  document.querySelectorAll('.punto-btn-desktop').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const valor = parseInt(this.dataset.valor);
+      const idx = parseInt(this.dataset.index);
+      
+      // Actualizar valor
+      valoresFlechas[idx] = valor;
+      
+      // Actualizar visualización
+      actualizarResumen(idx, valor);
+      actualizarTotal();
+      actualizarBotonesGuardar();
+      
+      // Actualizar display desktop
+      const display = document.getElementById(`puntosDisplayDesktop${idx}`);
+      if (display) {
+        display.textContent = valor;
+        display.className = 'fs-2 fw-bold';
+        if (valor >= 9) display.classList.add('text-warning');
+        else if (valor >= 7) display.classList.add('text-danger');
+        else if (valor >= 5) display.classList.add('text-info');
+        else if (valor >= 3) display.classList.add('text-dark');
+        else display.classList.add('text-secondary');
+      }
+    });
+  });
+  
+  // Manejar navegación entre flechas
+  if (prevFlecha) {
+    prevFlecha.addEventListener('click', () => {
+      if (flechaActivaIdx > 0) {
+        flechaActivaIdx--;
+        actualizarNavegacion();
+      }
+    });
+  }
+  
+  if (nextFlecha) {
+    nextFlecha.addEventListener('click', () => {
+      if (flechaActivaIdx < <%= entrenamiento.flechasPorTirada - 1 %>) {
+        flechaActivaIdx++;
+        actualizarNavegacion();
+      }
+    });
+  }
+  
+  // Manejar clicks en indicadores de flecha
   btnsFlechas.forEach((btn, idx) => {
     btn.addEventListener('click', () => {
       flechaActivaIdx = idx;
-      actualizarNavegacionFlechas();
+      actualizarNavegacion();
     });
   });
   
-  // Manejar selección de puntos en móvil
-  puntoBtnsMobile.forEach(btn => {
-    btn.addEventListener('click', function() {
-      const valor = parseInt(this.getAttribute('data-valor'));
+  // Manejar envío del formulario
+  if (formTirada) {
+    formTirada.addEventListener('submit', function(e) {
+      e.preventDefault();
       
-      // Actualizar el valor en el array
-      valoresFlechas[flechaActivaIdx] = valor;
-      
-      // Actualizar visualmente
-      actualizarNavegacionFlechas();
-      actualizarResumenFlecha(flechaActivaIdx, valor);
-      actualizarTotal();
-      
-      // Avanzar automáticamente a la siguiente flecha si no es la última
-      if (flechaActivaIdx < flechasPorTirada - 1) {
-        setTimeout(() => {
-          flechaActivaIdx++;
-          actualizarNavegacionFlechas();
-        }, 300);
+      // Verificar que todos los valores estén completos
+      if (!valoresFlechas.every(v => v !== null)) {
+        alert('Por favor, registra los puntos de todas las flechas antes de guardar.');
+        return;
       }
       
-      // Habilitar botón de guardar si todos los valores están completos
-      const todosCompletados = valoresFlechas.every(v => v !== null);
-      if (btnGuardar) btnGuardar.disabled = !todosCompletados;
+      // Asegurarse de que todos los inputs tengan valores
+      valoresFlechas.forEach((valor, idx) => {
+        const input = document.getElementById(`puntos${idx}`);
+        if (input) {
+          input.value = valor.toString();
+        }
+      });
+      
+      // Enviar el formulario
+      this.submit();
     });
-  });
-  
-  // Función para obtener la clase de color según el valor
-  function getPuntoClass(valor) {
-    if (valor >= 9) return 'text-warning';
-    if (valor >= 7) return 'text-danger';
-    if (valor >= 5) return 'text-info';
-    if (valor >= 3) return 'text-dark';
-    return 'text-secondary';
   }
-  
-  // Inicializar la interfaz
-  actualizarNavegacionFlechas();
   
   // Manejar reinicio de tirada
-  if (btnReiniciar) {
-    btnReiniciar.addEventListener('click', function() {
+  const btnReiniciarDesktop = document.getElementById('btnReiniciarDesktop');
+  if (btnReiniciarDesktop) {
+    btnReiniciarDesktop.addEventListener('click', function() {
       valoresFlechas.fill(null);
       flechaActivaIdx = 0;
-      actualizarNavegacionFlechas();
       
-      // Reiniciar resumen y total
-      resumenFlechas.forEach((badge, idx) => actualizarResumenFlecha(idx, null));
+      // Reiniciar todos los displays y valores
+      for(let i = 0; i < <%= entrenamiento.flechasPorTirada %>; i++) {
+        actualizarResumen(i, null);
+        const displayDesktop = document.getElementById(`puntosDisplayDesktop${i}`);
+        if (displayDesktop) {
+          displayDesktop.textContent = '-';
+          displayDesktop.className = 'fs-2 fw-bold';
+        }
+      }
+      
       actualizarTotal();
-      
-      if (btnGuardar) btnGuardar.disabled = true;
+      actualizarNavegacion();
+      actualizarBotonesGuardar();
     });
   }
+  
+  // Inicializar interfaz
+  actualizarNavegacion();
+  actualizarBotonesGuardar();
 });
 </script> 

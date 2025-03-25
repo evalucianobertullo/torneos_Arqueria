@@ -141,9 +141,14 @@ exports.getTiradasEntrenamiento = async (req, res) => {
 // Registrar una tirada en un entrenamiento
 exports.registrarTirada = async (req, res) => {
   try {
-    const { ronda, puntos } = req.body;
+    const { ronda } = req.body;
+    // Utilizar req.body['puntos[]'] en lugar de req.body.puntos
+    const puntos = req.body['puntos[]'];
+    
+    console.log('Datos recibidos:', { ronda, puntos, body: req.body });
     
     if (!ronda || !puntos) {
+      console.log('Error: Faltan datos obligatorios');
       req.flash('mensajeError', 'Todos los campos son obligatorios');
       return res.redirect(`/entrenamientos/${req.params.id}/tiradas`);
     }
@@ -152,13 +157,16 @@ exports.registrarTirada = async (req, res) => {
       _id: req.params.id,
       usuario: req.user.id
     });
+    console.log('Entrenamiento encontrado:', entrenamiento);
 
     if (!entrenamiento) {
+      console.log('Error: Entrenamiento no encontrado');
       req.flash('mensajeError', 'Entrenamiento no encontrado');
       return res.redirect('/entrenamientos');
     }
 
     if (entrenamiento.estado !== 'activo') {
+      console.log('Error: Entrenamiento no activo');
       req.flash('mensajeError', 'Este entrenamiento ya ha finalizado y no se pueden registrar más tiradas');
       return res.redirect(`/entrenamientos/${entrenamiento._id}`);
     }
@@ -166,27 +174,35 @@ exports.registrarTirada = async (req, res) => {
     // Verificar que la ronda no haya sido registrada previamente
     const rondaExistente = entrenamiento.tiradas.find(t => t.ronda === parseInt(ronda));
     if (rondaExistente) {
+      console.log('Error: Ronda ya registrada:', ronda);
       req.flash('mensajeError', `La ronda ${ronda} ya ha sido registrada`);
       return res.redirect(`/entrenamientos/${entrenamiento._id}/tiradas`);
     }
 
     // Convertir los puntos de string a array de números
     const puntosArray = Array.isArray(puntos) ? puntos.map(Number) : [Number(puntos)];
+    console.log('Puntos convertidos:', puntosArray);
     
     // Validar que la cantidad de puntos coincida con flechasPorTirada
     if (puntosArray.length !== entrenamiento.flechasPorTirada) {
+      console.log('Error: Cantidad incorrecta de flechas:', {
+        recibidas: puntosArray.length,
+        esperadas: entrenamiento.flechasPorTirada
+      });
       req.flash('mensajeError', `Debes registrar exactamente ${entrenamiento.flechasPorTirada} flechas`);
       return res.redirect(`/entrenamientos/${entrenamiento._id}/tiradas`);
     }
 
     // Validar puntos (entre 0 y 10)
     if (puntosArray.some(p => p < 0 || p > 10)) {
+      console.log('Error: Puntos fuera de rango:', puntosArray);
       req.flash('mensajeError', 'Los puntos deben estar entre 0 y 10');
       return res.redirect(`/entrenamientos/${entrenamiento._id}/tiradas`);
     }
 
     // Calcular total de la tirada
     const total = puntosArray.reduce((sum, punto) => sum + punto, 0);
+    console.log('Total calculado:', total);
 
     // Registrar la tirada
     entrenamiento.tiradas.push({
@@ -195,12 +211,16 @@ exports.registrarTirada = async (req, res) => {
       total
     });
 
-    await entrenamiento.save();
+    console.log('Tirada antes de guardar:', entrenamiento.tiradas[entrenamiento.tiradas.length - 1]);
+    
+    const entrenamientoGuardado = await entrenamiento.save();
+    console.log('Entrenamiento guardado exitosamente. Tiradas:', entrenamientoGuardado.tiradas);
 
     req.flash('mensajeExito', `¡Tirada de la ronda ${ronda} registrada correctamente!`);
     res.redirect(`/entrenamientos/${entrenamiento._id}/tiradas`);
   } catch (error) {
-    console.error('Error al registrar tirada:', error);
+    console.error('Error detallado al registrar tirada:', error);
+    console.error('Stack trace:', error.stack);
     req.flash('mensajeError', 'Error al registrar la tirada');
     res.redirect(`/entrenamientos/${req.params.id}/tiradas`);
   }
